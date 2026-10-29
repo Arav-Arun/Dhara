@@ -1,0 +1,375 @@
+{
+  "keyword search, query as typed": {
+    "precedent": {
+      "recall@10": 0.387,
+      "recall@50": 0.627,
+      "mrr": 0.199,
+      "ndcg@10": 0.233,
+      "n": 150
+    },
+    "precedent_reverse": {
+      "recall@10": 0.6,
+      "recall@50": 0.8,
+      "mrr": 0.606,
+      "ndcg@10": 0.6,
+      "n": 5
+    },
+    "statute": {
+      "recall@10": 0.91,
+      "recall@50": 0.93,
+      "mrr": 0.745,
+      "ndcg@10": 0.701,
+      "n": 100
+    },
+    "precedent_plain": {
+      "recall@10": 0.48,
+      "recall@50": 0.66,
+      "mrr": 0.262,
+      "ndcg@10": 0.306,
+      "n": 150
+    },
+    "latency_p50_s": 0.002697290969081223
+  },
+  "dense only, query as typed (plain RAG, as in prior IPC/BNS repos)": {
+    "precedent": {
+      "recall@10": 0.373,
+      "recall@50": 0.647,
+      "mrr": 0.217,
+      "ndcg@10": 0.244,
+      "n": 150
+    },
+    "precedent_reverse": {
+      "recall@10": 0.6,
+      "recall@50": 0.8,
+      "mrr": 0.345,
+      "ndcg@10": 0.404,
+      "n": 5
+    },
+    "statute": {
+      "recall@10": 0.98,
+      "recall@50": 1.0,
+      "mrr": 0.868,
+      "ndcg@10": 0.763,
+      "n": 100
+    },
+    "precedent_plain": {
+      "recall@10": 0.407,
+      "recall@50": 0.687,
+      "mrr": 0.246,
+      "ndcg@10": 0.273,
+      "n": 150
+    },
+    "latency_p50_s": 0.14209779107477516
+  },
+  "keyword search, section numbers set aside": {
+    "precedent": {
+      "recall@10": 0.48,
+      "recall@50": 0.66,
+      "mrr": 0.262,
+      "ndcg@10": 0.306,
+      "n": 150
+    },
+    "precedent_reverse": {
+      "recall@10": 0.8,
+      "recall@50": 1.0,
+      "mrr": 0.331,
+      "ndcg@10": 0.434,
+      "n": 5
+    },
+    "statute": {
+      "recall@10": 0.91,
+      "recall@50": 0.93,
+      "mrr": 0.745,
+      "ndcg@10": 0.701,
+      "n": 100
+    },
+    "precedent_plain": {
+      "recall@10": 0.48,
+      "recall@50": 0.66,
+      "mrr": 0.262,
+      "ndcg@10": 0.306,
+      "n": 150
+    },
+    "latency_p50_s": 0.0042473329231143
+  },
+  "+ citation graph": {
+    "precedent": {
+      "recall@10": 0.513,
+      "recall@50": 0.72,
+      "mrr": 0.291,
+      "ndcg@10": 0.335,
+      "n": 150
+    },
+    "precedent_reverse": {
+      "recall@10": 0.8,
+      "recall@50": 1.0,
+      "mrr": 0.813,
+      "ndcg@10": 0.8,
+      "n": 5
+    },
+    "statute": {
+      "recall@10": 0.91,
+      "recall@50": 0.93,
+      "mrr": 0.745,
+      "ndcg@10": 0.701,
+      "n": 100
+    },
+    "precedent_plain": {
+      "recall@10": 0.48,
+      "recall@50": 0.66,
+      "mrr": 0.262,
+      "ndcg@10": 0.306,
+      "n": 150
+    },
+    "latency_p50_s": 0.0037735000951215625
+  },
+  "+ bge-m3 dense and sparse, fused by RRF": {
+    "precedent": {
+      "recall@10": 0.44,
+      "recall@50": 0.687,
+      "mrr": 0.23,
+      "ndcg@10": 0.27,
+      "n": 150
+    },
+    "precedent_reverse": {
+      "recall@10": 0.8,
+      "recall@50": 1.0,
+      "mrr": 0.806,
+      "ndcg@10": 0.8,
+      "n": 5
+    },
+    "statute": {
+      "recall@10": 0.96,
+      "recall@50": 0.98,
+      "mrr": 0.855,
+      "ndcg@10": 0.795,
+      "n": 100
+    },
+    "precedent_plain": {
+      "recall@10": 0.533,
+      "recall@50": 0.693,
+      "mrr": 0.307,
+      "ndcg@10": 0.355,
+      "n": 150
+    },
+    "latency_p50_s": 0.16708470892626792
+  },
+  "+ multi-vector rescoring": {
+    "precedent": {
+      "recall@10": 0.327,
+      "recall@50": 0.687,
+      "mrr": 0.148,
+      "ndcg@10": 0.175,
+      "n": 150
+    },
+    "precedent_reverse": {
+      "recall@10": 0.8,
+      "recall@50": 1.0,
+      "mrr": 0.296,
+      "ndcg@10": 0.416,
+      "n": 5
+    },
+    "statute": {
+      "recall@10": 0.97,
+      "recall@50": 0.98,
+      "mrr": 0.916,
+      "ndcg@10": 0.83,
+      "n": 100
+    },
+    "precedent_plain": {
+      "recall@10": 0.527,
+      "recall@50": 0.693,
+      "mrr": 0.308,
+      "ndcg@10": 0.352,
+      "n": 150
+    },
+    "latency_p50_s": 8.03963858296629
+  },
+  "+ cross-encoder (bge-reranker-base)": {
+    "precedent": {
+      "recall@10": 0.453,
+      "recall@50": 0.687,
+      "mrr": 0.264,
+      "ndcg@10": 0.3,
+      "n": 150
+    },
+    "precedent_reverse": {
+      "recall@10": 0.8,
+      "recall@50": 1.0,
+      "mrr": 0.708,
+      "ndcg@10": 0.726,
+      "n": 5
+    },
+    "statute": {
+      "recall@10": 0.97,
+      "recall@50": 0.98,
+      "mrr": 0.872,
+      "ndcg@10": 0.791,
+      "n": 100
+    },
+    "precedent_plain": {
+      "recall@10": 0.507,
+      "recall@50": 0.693,
+      "mrr": 0.301,
+      "ndcg@10": 0.342,
+      "n": 150
+    },
+    "latency_p50_s": 3.6509602919686586
+  },
+  "+ cross-encoder (bge-reranker-v2-m3)": {
+    "precedent": {
+      "recall@10": 0.553,
+      "recall@50": 0.687,
+      "mrr": 0.357,
+      "ndcg@10": 0.399,
+      "n": 150
+    },
+    "precedent_reverse": {
+      "recall@10": 0.6,
+      "recall@50": 1.0,
+      "mrr": 0.621,
+      "ndcg@10": 0.6,
+      "n": 5
+    },
+    "statute": {
+      "recall@10": 0.98,
+      "recall@50": 0.98,
+      "mrr": 0.924,
+      "ndcg@10": 0.859,
+      "n": 100
+    },
+    "precedent_plain": {
+      "recall@10": 0.54,
+      "recall@50": 0.693,
+      "mrr": 0.365,
+      "ndcg@10": 0.4,
+      "n": 150
+    },
+    "latency_p50_s": 12.546836833003908
+  },
+  "+ LLM reranker (gpt-6-luna)": {
+    "precedent": {
+      "recall@10": 0.453,
+      "recall@50": 0.687,
+      "mrr": 0.337,
+      "ndcg@10": 0.357,
+      "n": 150
+    },
+    "precedent_reverse": {
+      "recall@10": 0.8,
+      "recall@50": 1.0,
+      "mrr": 0.672,
+      "ndcg@10": 0.7,
+      "n": 5
+    },
+    "statute": {
+      "recall@10": 0.97,
+      "recall@50": 0.98,
+      "mrr": 0.964,
+      "ndcg@10": 0.938,
+      "n": 100
+    },
+    "precedent_plain": {
+      "recall@10": 0.547,
+      "recall@50": 0.693,
+      "mrr": 0.383,
+      "ndcg@10": 0.416,
+      "n": 150
+    },
+    "latency_p50_s": 9.876631084014662
+  },
+  "+ fine-tuned cross-encoder, first version": {
+    "precedent": {
+      "recall@10": 0.427,
+      "recall@50": 0.687,
+      "mrr": 0.224,
+      "ndcg@10": 0.262,
+      "n": 150
+    },
+    "precedent_reverse": {
+      "recall@10": 0.8,
+      "recall@50": 1.0,
+      "mrr": 0.338,
+      "ndcg@10": 0.431,
+      "n": 5
+    },
+    "statute": {
+      "recall@10": 0.98,
+      "recall@50": 0.98,
+      "mrr": 0.896,
+      "ndcg@10": 0.793,
+      "n": 100
+    },
+    "precedent_plain": {
+      "recall@10": 0.507,
+      "recall@50": 0.693,
+      "mrr": 0.223,
+      "ndcg@10": 0.281,
+      "n": 150
+    },
+    "latency_p50_s": 6.3454465420218185
+  },
+  "+ fusion with the citation graph weighted x2": {
+    "precedent": {
+      "recall@10": 0.467,
+      "recall@50": 0.673,
+      "mrr": 0.249,
+      "ndcg@10": 0.294,
+      "n": 150
+    },
+    "precedent_reverse": {
+      "recall@10": 0.8,
+      "recall@50": 1.0,
+      "mrr": 0.804,
+      "ndcg@10": 0.8,
+      "n": 5
+    },
+    "statute": {
+      "recall@10": 0.96,
+      "recall@50": 0.98,
+      "mrr": 0.855,
+      "ndcg@10": 0.795,
+      "n": 100
+    },
+    "precedent_plain": {
+      "recall@10": 0.533,
+      "recall@50": 0.693,
+      "mrr": 0.307,
+      "ndcg@10": 0.355,
+      "n": 150
+    },
+    "latency_p50_s": 0.24026337498798966
+  },
+  "+ fine-tuned cross-encoder over the weighted fusion, first version": {
+    "precedent": {
+      "recall@10": 0.427,
+      "recall@50": 0.673,
+      "mrr": 0.228,
+      "ndcg@10": 0.265,
+      "n": 150
+    },
+    "precedent_reverse": {
+      "recall@10": 0.8,
+      "recall@50": 1.0,
+      "mrr": 0.353,
+      "ndcg@10": 0.451,
+      "n": 5
+    },
+    "statute": {
+      "recall@10": 0.98,
+      "recall@50": 0.98,
+      "mrr": 0.896,
+      "ndcg@10": 0.793,
+      "n": 100
+    },
+    "precedent_plain": {
+      "recall@10": 0.507,
+      "recall@50": 0.693,
+      "mrr": 0.223,
+      "ndcg@10": 0.281,
+      "n": 150
+    },
+    "latency_p50_s": 6.3454465420218185,
+    "latency_note": "scores were shared with the row two above in this run; the same model reading the same number of passages costs the same"
+  }
+}

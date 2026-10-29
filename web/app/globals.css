@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+/* Cool grey canvas (after fanout), indigo ink and a saffron-to-periwinkle wash (after Sarvam).
+   Old-code numbers in brown and new-code numbers in indigo so the two numberings read apart. */
+:root
+{
+    color-scheme: light;
+    --paper: #f7f7f8;
+    --sheet: #ffffff;
+    --ink: #1f1f1f;
+    --graphite: #6e6e6e;
+    --rule: #e6e6e9;
+    --stamp: #23238f;
+    --stamp-wash: #ececfa;
+    --saffron: #e8792b;
+    --periwinkle: #9fa8f0;
+    --old: #8a6d3b;
+    --old-wash: #f6f0e4;
+    --redtape: #b4322d;
+    --green: #2f7a52;
+    --amber: #a86d12;
+    --folder-blue: #c5cde0;
+    --folder-teal: #a8d0cf;
+    --folder-indigo: #8f9bd0;
+    --folder-lilac: #d6b8e6;
+    --folder-rose: #e4aaa0;
+}
+
+@theme inline
+{
+    --color-paper: var(--paper);
+    --color-sheet: var(--sheet);
+    --color-ink: var(--ink);
+    --color-graphite: var(--graphite);
+    --color-rule: var(--rule);
+    --color-stamp: var(--stamp);
+    --color-stamp-wash: var(--stamp-wash);
+    --color-saffron: var(--saffron);
+    --color-old: var(--old);
+    --color-old-wash: var(--old-wash);
+    --color-redtape: var(--redtape);
+    --color-green: var(--green);
+    --color-amber: var(--amber);
+    --font-sans: var(--font-host);
+    --font-serif: var(--font-literata);
+}
+
+body
+{
+    background: var(--paper);
+    color: var(--ink);
+}
+
+.figures
+{
+    font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* the soft dawn wash behind the landing hero */
+.wash
+{
+    background:
+        radial-gradient(60% 55% at 50% -10%, color-mix(in srgb, var(--saffron) 55%, transparent), transparent 70%),
+        radial-gradient(45% 50% at 10% 10%, color-mix(in srgb, var(--periwinkle) 45%, transparent), transparent 70%),
+        radial-gradient(45% 50% at 90% 10%, color-mix(in srgb, var(--periwinkle) 45%, transparent), transparent 70%);
+}
+
+/* halftone dots used on folder covers and artifacts */
+.halftone
+{
+    background-image: radial-gradient(color-mix(in srgb, currentColor 35%, transparent) 1px, transparent 1.2px);
+    background-size: 6px 6px;
+}
+
+:focus-visible
+{
+    outline: 2px solid var(--stamp);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+::selection
+{
+    background: var(--stamp-wash);
+}
+
+@media (prefers-reduced-motion: reduce)
+{
+    *
+    {
+        transition: none !important;
+        animation: none !important;
+    }
+}

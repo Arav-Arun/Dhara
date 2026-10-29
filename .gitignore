@@ -1,0 +1,28 @@
+# secrets
+.env
+# python
+.venv/
+__pycache__/
+*.pyc
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+# data and artifacts (published to Hugging Face, never to git)
+data/
+models/
+*.sqlite
+*.onnx
+# web
+node_modules/
+.next/
+.vercel/
+# os
+.DS_Store
+
+# credentials
+.kaggle/
+kaggle.json
+access_token
+
+
+logs/
