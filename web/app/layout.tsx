@@ -12,7 +12,7 @@ const sans = Host_Grotesk({ variable: "--font-host", subsets: ["latin"] });
 
 export const metadata: Metadata =
     {
-        title: { default: "Dhara: Indian criminal law across the old and new codes", template: "%s · Dhara" },
+        title: { default: "Dhara · IPC to BNS", template: "%s · Dhara" },
         description: "Statutes, the official IPC to BNS mapping, and Supreme Court precedent found under either numbering.",
     };
 
