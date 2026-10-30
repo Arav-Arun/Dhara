@@ -205,9 +205,9 @@ function Composer({ q, setQ, asOf, setAsOf, busy, onAsk, first }: ComposerProps)
                     }
                 }}
                 placeholder={first ? "For example: can a magistrate grant bail in a non-bailable offence punishable with life imprisonment?" : "Ask a follow-up. Earlier answers are taken into account."}
-                className="w-full resize-none bg-transparent text-[17px] leading-relaxed outline-none placeholder:text-graphite/70" />
-            <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-                <label className="flex items-center gap-2 text-[13px] text-graphite">
+                className="w-full resize-none rounded-[10px] border border-rule bg-transparent px-3 py-2 text-[17px] leading-relaxed outline-none placeholder:text-graphite/70 focus:border-stamp sm:rounded-none sm:border-0 sm:p-0" />
+            <div className="mt-3 flex flex-col items-stretch gap-3 text-center sm:mt-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:text-left">
+                <label className="flex items-center justify-center gap-2 text-[13px] text-graphite">
                     Law as on
                     <input type="date" value={asOf} onChange={(e) => setAsOf(e.target.value)}
                         className="figures rounded-[4px] border border-rule bg-sheet px-2 py-1 text-ink outline-none focus:border-stamp" />
@@ -215,7 +215,7 @@ function Composer({ q, setQ, asOf, setAsOf, busy, onAsk, first }: ComposerProps)
                 </label>
                 {first && <span className="text-[13px] text-graphite">Answers from the six criminal codes and Supreme Court judgments, 1950 to September 2026</span>}
                 <button type="submit" disabled={busy || !q.trim()}
-                    className="rounded-[4px] bg-[#1d1d3a] px-5 py-2 text-sm text-white hover:bg-stamp disabled:opacity-40">
+                    className="w-full rounded-[4px] bg-[#1d1d3a] px-5 py-2.5 text-sm text-white hover:bg-stamp disabled:opacity-40 sm:w-auto sm:py-2">
                     {busy ? "Researching" : "Ask"}
                 </button>
             </div>

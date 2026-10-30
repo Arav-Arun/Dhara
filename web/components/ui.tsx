@@ -55,11 +55,11 @@ export function Heading({ children, sub }: { children: React.ReactNode; sub?: Re
     );
 }
 
-export function Button({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>)
+export function Button({ children, className = "", ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>)
 {
     return (
         <button {...props}
-            className="rounded-[4px] bg-[#1d1d3a] px-5 py-2 text-sm text-white hover:bg-stamp disabled:opacity-50">
+            className={`rounded-[4px] bg-[#1d1d3a] px-5 py-2 text-sm text-white hover:bg-stamp disabled:opacity-50 ${className}`}>
             {children}
         </button>
     );

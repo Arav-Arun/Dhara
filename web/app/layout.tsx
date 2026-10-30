@@ -38,7 +38,7 @@ export default function RootLayout({ children }: LayoutProps<"/">)
                 <header className="sticky top-0 z-40 border-b border-rule/70 bg-paper/80 backdrop-blur">
                     <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-8 gap-y-3 px-5 py-4">
                         <Logo />
-                        <nav className="order-last flex w-full gap-5 overflow-x-auto text-sm whitespace-nowrap text-graphite md:order-none md:w-auto md:gap-6">
+                        <nav className="order-last flex w-full justify-between gap-4 overflow-x-auto text-sm whitespace-nowrap text-graphite md:order-none md:w-auto md:justify-start md:gap-6">
                             {NAV.map(([to, name]) => <Link key={to} href={to} className="hover:text-ink">{name}</Link>)}
                         </nav>
                         <div className="ml-auto"><Suspense fallback={<FinderPlaceholder />}><CommandPalette /></Suspense></div>

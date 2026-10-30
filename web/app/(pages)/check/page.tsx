@@ -84,14 +84,14 @@ export default function Check()
             <div className="mt-1 text-right">
                 <button onClick={sample} className="text-[13px] text-stamp hover:underline">Use a sample</button>
             </div>
-            <div className="mt-2 flex flex-wrap items-end justify-center gap-6">
+            <div className="mt-2 grid grid-cols-2 items-end gap-4 text-center sm:flex sm:flex-wrap sm:justify-center sm:gap-6 sm:text-left">
                 <label className="text-sm text-graphite">Date of the offence
-                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={`${field} figures mt-1 block text-ink`} />
+                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={`${field} figures mt-1 block w-full text-ink sm:w-auto`} />
                 </label>
-                <label className="text-sm text-graphite">FIR registered on (optional)
-                    <input type="date" value={fir} onChange={(e) => setFir(e.target.value)} className={`${field} figures mt-1 block text-ink`} />
+                <label className="text-sm text-graphite">FIR registered on <span className="whitespace-nowrap">(optional)</span>
+                    <input type="date" value={fir} onChange={(e) => setFir(e.target.value)} className={`${field} figures mt-1 block w-full text-ink sm:w-auto`} />
                 </label>
-                <Button onClick={run} disabled={busy || !text.trim()}>{busy ? "Checking" : "Check citations"}</Button>
+                <Button onClick={run} disabled={busy || !text.trim()} className="col-span-2 w-full sm:w-auto">{busy ? "Checking" : "Check citations"}</Button>
             </div>
             {!date && text && <p className="mt-3 text-center text-[13px] text-graphite">Without an offence date, Dhara can only check that each section exists and isn’t repealed.</p>}
             {error && <p className="mt-4 text-center text-redtape">{error}</p>}
