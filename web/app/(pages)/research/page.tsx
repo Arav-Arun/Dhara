@@ -239,7 +239,6 @@ const STAGE: Record<string, string> =
         route: "Read the question",
         "retrieve:statute": "Searched the codes",
         "retrieve:judgment": "Searched the judgments",
-        "rerank:statute": "Re-ranked sections",
         "rerank:judgment": "Re-ranked judgments",
         gate: "Checked the question is about criminal law",
         plan: "Decided on further searches",

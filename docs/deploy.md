@@ -10,7 +10,7 @@ Two pieces: the site (Next.js) and the API (FastAPI with the index in memory).
 |---|---|---|
 | `data/processed/dhara.sqlite` | 0.8 GB | read through SQLite's page cache |
 | `data/processed/index/` (`bm25/`, `dense.npy`, `sparse.npz`, `meta.json`; not `shards/`) | 0.65 GB | about 0.7 GB |
-| `data/processed/models/dhara-reranker/` | 1.1 GB | about 1.1 GB |
+| `data/processed/models/dhara-reranker/` (reranker and scope check) | 1.1 GB | about 1.1 GB |
 | bge-m3 query encoder (downloaded to the HF cache on first start) | 2.2 GB | about 2.3 GB |
 | `eval/results/` (Method page tables, abstention threshold) | small | — |
 
@@ -21,7 +21,8 @@ Plan for about 5 GB of RAM. That rules out 512 MB free tiers (Render's free plan
 1. Create an Ampere A1 instance (Ubuntu 24.04, 4 OCPU, 24 GB). Open port 443 in the subnet's security list.
 2. Install Docker and Caddy, then copy the data over:
    ```bash
-   rsync -av --exclude shards data/processed/ ubuntu@HOST:/srv/dhara/data/processed/
+   rsync -av --exclude shards --exclude checkpoints --exclude dhara-reranker-v1 \
+     data/processed/ ubuntu@HOST:/srv/dhara/data/processed/
    ```
 3. Build and run (on the machine, from a checkout of the repo):
    ```bash

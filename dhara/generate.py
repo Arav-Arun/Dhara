@@ -26,8 +26,10 @@ SYSTEM = (
     "passage. Every point cites the passage ids it relies on, e.g. [S1] or [J2]. Name provisions by their current "
     "number with the old number in brackets. In authorities, list the judgments worth citing, strongest first and at "
     "most five, each with its passage id and the one proposition it supports. If the passages don't support an "
-    "answer, set abstain=true and say what's missing. Finally suggest up to three short follow-up questions a lawyer "
-    "would plausibly ask next on this matter. This is research help, not legal advice."
+    "answer, set abstain=true and say what's missing. Do the same if the question is about civil, family, tax or "
+    "property law rather than an offence or criminal procedure (cruelty, dowry death or maintenance under BNSS 144 "
+    "are criminal), and say it is outside the criminal codes. Finally suggest up to three short follow-up questions "
+    "a lawyer would plausibly ask next on this matter. This is research help, not legal advice."
 )
 SCHEMA = {
     "type": "object",

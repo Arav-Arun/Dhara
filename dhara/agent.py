@@ -1,7 +1,7 @@
 """The research pipeline, end to end, with a bounded agentic step and a full trace.
 
-    route → expand + retrieve (statutes ∥ judgments, fused by rank) → scope check → [≤2 follow-up searches]
-          → context budget → structured answer → deterministic verification
+    route → expand + retrieve (statutes ∥ judgments, fused by rank) → rerank judgments → scope check
+          → [≤2 follow-up searches] → context budget → structured answer → deterministic verification
 
 The only "agentic" part is one decision: after the first pass, the model may ask for up to two
 more searches (e.g. "judgments on the companion procedural section"). It can't loop, can't call
@@ -73,7 +73,7 @@ class Trace:
 @dataclass
 class Pipeline:
     ix: Index
-    reranker: str | None = None  # path or HF id of a cross-encoder; None = fused order (measured as better)
+    reranker: str | None = None  # cross-encoder that reorders judgment passages; None = fused order
     gate: str | None = None  # cross-encoder whose top statute score decides out-of-scope questions
     followups: int = 2
     top_statutes: int = 8
@@ -83,7 +83,10 @@ class Pipeline:
     def first_pass(self, text: str, kind: str, as_of: date, trace: Trace) -> list[Hit]:
         t = time.perf_counter()
         q = Query(text, as_of=as_of, kind=kind)
-        hits = self.ix.search(q, k=100, weights=LIVE_WEIGHTS)
+        reranked = self.reranker is not None and kind == "judgment"
+        # as measured (evaluate.configs): the reranker helps over the even fusion and hurts over the
+        # weighted one, and it doesn't help statutes, which keep the weighted order
+        hits = self.ix.search(q, k=100, weights=None if reranked else LIVE_WEIGHTS)
         trace.add(
             f"retrieve:{kind}",
             t,
@@ -92,7 +95,7 @@ class Pipeline:
             counterparts=q.counterparts,
             top=[{"unit": self.ix.ids[h.ord], "rrf": round(h.score, 4), "by": h.by} for h in hits[:10]],
         )
-        if self.reranker:
+        if reranked and self.reranker:
             t = time.perf_counter()
             hits = rerank.cross_encoder(self.ix, q, hits, self.reranker)
             trace.add(

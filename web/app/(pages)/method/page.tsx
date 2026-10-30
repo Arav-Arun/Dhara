@@ -104,9 +104,9 @@ export default async function Method()
                         </div>
                         <FanIn />
                     </Step>
-                    <Step n={4} title="Merge by rank"
-                        text="The four lists are merged by rank, with the citation graph counted twice. The best 8 sections and 12 judgments go forward. A cross-encoder trained on Indian criminal judgments first checks the question is about criminal law at all; re-ranking with it was measured and left out, because it found the right judgments less often than the merged order.">
-                        <Tags items={["Reciprocal rank fusion", "Citation graph weighted x2", "Out-of-scope check"]} />
+                    <Step n={4} title="Merge and re-rank"
+                        text="The four lists are merged by rank. A cross-encoder fine-tuned on Indian criminal judgments then re-reads the top 50 judgment passages next to your question and puts them in order; on held-out questions it finds the right judgment in the top 10 more often than any search alone. The same model checks that the question is about criminal law at all. The best 8 sections and 12 judgments go forward.">
+                        <Tags items={["Reciprocal rank fusion", "Fine-tuned cross-encoder", "Out-of-scope check"]} />
                     </Step>
                     <Step n={5} title="A second look"
                         text="If something is missing, such as the procedural provision that goes with an offence, Dhara runs up to two more searches. Here it would look for the High Court’s inherent powers, BNSS 528, once CrPC 482. Each extra search is shown to you." />

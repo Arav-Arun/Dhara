@@ -136,14 +136,14 @@ def configs(finetuned: str | None = None) -> dict[str, Ranker]:
         "+ LLM reranker (gpt-6-luna)": then(fused, rerank.llm_rerank),
     }
     if finetuned:
-        rows["+ fine-tuned cross-encoder (ours)"] = then(
+        rows["+ fine-tuned cross-encoder, retrained (live)"] = then(
             fused, lambda ix, q, h: rerank.cross_encoder(ix, q, h, finetuned)
         )
         # dense and sparse dilute the citation graph when every list counts the same; weight 2 was
         # fixed before measuring, so it is not tuned on dev or test
         weighted = lambda ix, q: ix.search(q, use=("bm25", "cited", "dense", "sparse"), weights={"cited": 2.0})  # noqa: E731
         rows["+ fusion with the citation graph weighted x2"] = weighted
-        rows["+ fine-tuned cross-encoder over the weighted fusion"] = then(
+        rows["+ fine-tuned cross-encoder, retrained, over the weighted fusion"] = then(
             weighted, lambda ix, q, h: rerank.cross_encoder(ix, q, h, finetuned)
         )
     return rows
@@ -165,11 +165,13 @@ def ablate(split: str = "dev", only: list[str] | None = None, finetuned: str | N
     return (RESULTS / f"{split}.md").read_text()
 
 
-def calibrate_abstention(ix: Index, reranker: str, split: str = "dev") -> dict[str, float]:
+def calibrate_abstention(ix: Index, reranker: str, split: str = "dev", keep: float = 0.95) -> dict[str, float]:
     """Pick the cross-encoder score below which Dhara declines instead of answering.
 
     In-scope questions (statute and precedent) should clear it; the out-of-scope ones in the
-    benchmark (civil, tax, family…) should not. We take the threshold with the best balanced accuracy.
+    benchmark (civil, tax, family…) should not. Turning away a real criminal-law question is the worse
+    mistake: an off-topic one still only gets criminal-law passages, and every citation is checked.
+    So the threshold is the highest that still answers `keep` of the in-scope questions.
     """
     from dhara import rerank
 
@@ -179,10 +181,12 @@ def calibrate_abstention(ix: Index, reranker: str, split: str = "dev") -> dict[s
         q = Query(str(item["query"]), kind=kind)
         hits = rerank.cross_encoder(ix, q, ix.search(q, k=50, weights=LIVE_WEIGHTS), reranker, top=20)
         scores.append((hits[0].score if hits else -99.0, item["type"] != "abstain"))
-    best = (0.0, 0.0)
-    for t in sorted({s for s, _ in scores}):
-        in_scope = [s >= t for s, ok in scores if ok]
-        out_scope = [s < t for s, ok in scores if not ok]
-        balanced = (sum(in_scope) / len(in_scope) + sum(out_scope) / len(out_scope)) / 2
-        best = max(best, (balanced, t))
-    return {"threshold": best[1], "balanced_accuracy": round(best[0], 3), "n": len(scores)}
+    in_scope = sorted(s for s, ok in scores if ok)
+    out_scope = [s for s, ok in scores if not ok]
+    t = in_scope[int(len(in_scope) * (1 - keep))]
+    return {
+        "threshold": t,
+        "in_scope_answered": round(sum(s >= t for s in in_scope) / len(in_scope), 3),
+        "out_of_scope_declined": round(sum(s < t for s in out_scope) / len(out_scope), 3),
+        "n": len(scores),
+    }

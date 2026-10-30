@@ -278,5 +278,67 @@
     },
     "latency_p50_s": 6.351358624990098,
     "latency_note": "scores were shared with the row two above in this run; the same model reading the same number of passages costs the same"
+  },
+  "+ fine-tuned cross-encoder, retrained (live)": {
+    "precedent": {
+      "recall@10": 0.433,
+      "recall@50": 0.6,
+      "mrr": 0.214,
+      "ndcg@10": 0.258,
+      "n": 150
+    },
+    "precedent_reverse": {
+      "recall@10": 0.833,
+      "recall@50": 1.0,
+      "mrr": 0.653,
+      "ndcg@10": 0.688,
+      "n": 6
+    },
+    "statute": {
+      "recall@10": 1.0,
+      "recall@50": 1.0,
+      "mrr": 0.957,
+      "ndcg@10": 0.816,
+      "n": 97
+    },
+    "precedent_plain": {
+      "recall@10": 0.447,
+      "recall@50": 0.633,
+      "mrr": 0.166,
+      "ndcg@10": 0.224,
+      "n": 150
+    },
+    "latency_p50_s": 5.4587133339373395
+  },
+  "+ fine-tuned cross-encoder, retrained, over the weighted fusion": {
+    "precedent": {
+      "recall@10": 0.373,
+      "recall@50": 0.573,
+      "mrr": 0.149,
+      "ndcg@10": 0.19,
+      "n": 150
+    },
+    "precedent_reverse": {
+      "recall@10": 0.833,
+      "recall@50": 1.0,
+      "mrr": 0.473,
+      "ndcg@10": 0.544,
+      "n": 6
+    },
+    "statute": {
+      "recall@10": 1.0,
+      "recall@50": 1.0,
+      "mrr": 0.957,
+      "ndcg@10": 0.816,
+      "n": 97
+    },
+    "precedent_plain": {
+      "recall@10": 0.447,
+      "recall@50": 0.633,
+      "mrr": 0.166,
+      "ndcg@10": 0.224,
+      "n": 150
+    },
+    "latency_p50_s": 6.104968167026527
   }
 }

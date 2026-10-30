@@ -12,3 +12,5 @@
 | + fine-tuned cross-encoder, first version | 0.427 | 0.224 | 0.507 | 0.8 | 0.793 | 0.98 | 6.345 |
 | + fusion with the citation graph weighted x2 | 0.467 | 0.249 | 0.533 | 0.8 | 0.795 | 0.96 | 0.24 |
 | + fine-tuned cross-encoder over the weighted fusion, first version | 0.427 | 0.228 | 0.507 | 0.8 | 0.793 | 0.98 | 6.345 |
+| + fine-tuned cross-encoder, retrained (live) | 0.487 | 0.223 | 0.48 | 0.6 | 0.769 | 0.98 | 5.461 |
+| + fine-tuned cross-encoder, retrained, over the weighted fusion | 0.427 | 0.195 | 0.48 | 0.4 | 0.769 | 0.98 | 6.079 |

@@ -57,7 +57,8 @@ def pipeline() -> Pipeline:
         trained = (model / "config.json").exists()  # the folder appears with the first checkpoint
         cal = settings.processed_dir.parent.parent / "eval" / "results" / "abstention.json"
         threshold = json.loads(cal.read_text())["threshold"] if cal.exists() and trained else None
-        _state["pipeline"] = Pipeline(Index(), gate=str(model) if trained else None, abstain_below=threshold)
+        path = str(model) if trained else None  # one fine-tuned model reranks judgments and gates scope
+        _state["pipeline"] = Pipeline(Index(), reranker=path, gate=path, abstain_below=threshold)
     return _state["pipeline"]  # type: ignore[no-any-return]
 
 

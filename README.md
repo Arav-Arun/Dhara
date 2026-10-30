@@ -50,14 +50,15 @@ flowchart LR
     Q[question] --> E[section numbers read<br>in both codes]
     E --> R[BM25 ∥ citation graph ∥<br>bge-m3 dense ∥ sparse]
     R --> F[fused by rank]
-    F --> C{in scope?<br>fine-tuned cross-encoder}
+    F --> X[fine-tuned cross-encoder<br>reranks judgments]
+    X --> C{in scope?<br>same model}
     C -->|yes| G[structured answer,<br>every point cited]
     C -->|no| D[decline]
     G --> V[verifier<br>in code]
     V --> A[research note<br>and trace]
 ```
 
-A question about BNS 103 is mapped to IPC 302 through NCRB's official tables, and one retriever searches only the judgment passages that cite either. That citation graph is fused with keyword and bge-m3 search. Before any statement reaches the page, code checks that every citation points to a passage that was retrieved and to a section that exists and was in force.
+A question about BNS 103 is mapped to IPC 302 through NCRB's official tables, and one retriever searches only the judgment passages that cite either. That citation graph is fused with keyword and bge-m3 search, and a cross-encoder fine-tuned on pairs mined from the corpus reranks the judgments. Before any statement reaches the page, code checks that every citation points to a passage that was retrieved and to a section that exists and was in force.
 
 **More:** [architecture and design choices](docs/architecture.md)
 
@@ -70,9 +71,11 @@ On the held-out test split (150 new-code questions whose answer is a judgment th
 | Keyword search, question as typed | 0.27 |
 | Plain RAG (dense search only) | 0.31 |
 | + section numbers read through the citation graph | 0.37 |
-| **Live pipeline: four retrievers, citation graph weighted ×2** | **0.38** |
+| Four retrievers, citation graph weighted ×2 | 0.38 |
+| LLM reranker over the four retrievers | 0.37 |
+| **Live: four retrievers + fine-tuned reranker** | **0.43** |
 
-Three rerankers were measured on top, including one fine-tuned on pairs mined from the corpus and an LLM reranker. None beat the live fusion at finding old-code precedent on both splits, and each added 6 to 12 seconds per search, so the fine-tuned model is used only to decide whether a question is in scope (balanced accuracy 0.88).
+The reranker is bge-reranker-base fine-tuned on 1,596 question–passage pairs from training-split judgments. Its first version lost to the fusion, because its hard negatives included passages citing the same sections as the question, which are often right answers too. Retrained without them, it finds the right judgment more often on both splits (test 0.38 → 0.43, dev 0.47 → 0.49) and also decides whether a question is in scope.
 
 **More:** [benchmark, full ablation and component checks](docs/evaluation.md)
 

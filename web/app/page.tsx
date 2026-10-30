@@ -93,7 +93,7 @@ export default async function Home()
 
                 <div className="mx-auto mt-24 max-w-2xl text-center">
                     <h2 className="text-[34px] tracking-[-0.035em]">What Dhara answers from</h2>
-                    <p className="mt-2 text-graphite">Every answer comes from these sources and cites them. Anything else, such as civil, tax or family law, is declined rather than guessed.</p>
+                    <p className="mt-2 text-graphite">Every answer comes from these sources and cites them, so civil, tax and family law are out of scope. Questions clearly outside criminal law are declined rather than guessed.</p>
                 </div>
                 <div className="mx-auto mt-10 grid max-w-5xl gap-4 md:grid-cols-3">
                     {COVERAGE.map(([title, what, source]) => (

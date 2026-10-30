@@ -1,5 +1,6 @@
 {
-  "threshold": 0.04748552292585373,
-  "balanced_accuracy": 0.884,
+  "threshold": 0.00025074914447031915,
+  "in_scope_answered": 0.953,
+  "out_of_scope_declined": 0.5,
   "n": 275
 }

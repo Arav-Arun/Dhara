@@ -39,8 +39,9 @@ flowchart TD
     Q[question and earlier turns] --> W[rewrite a follow-up as a standalone question]
     W --> E[read section numbers, add their old/new counterparts from the official tables]
     E --> S[statutes and judgments searched as separate pools]
-    S --> R[BM25 ∥ citation graph ×2 ∥ bge-m3 dense ∥ bge-m3 sparse, fused by rank]
-    R --> CE[fine-tuned cross-encoder: is this a criminal-law question?]
+    S --> R[BM25 ∥ citation graph ∥ bge-m3 dense ∥ bge-m3 sparse, fused by rank]
+    R --> X[fine-tuned cross-encoder reranks the top 50 judgment passages]
+    X --> CE[same model, on the top statutes: is this a criminal-law question?]
     CE -->|no| D[decline]
     CE -->|yes| F[up to 2 follow-up searches, if the model asks for them]
     F --> B[context budget: statutes whole, at most 2 passages per judgment]
@@ -53,7 +54,7 @@ flowchart TD
 |---|---|
 | Rewrite, follow-up searches, trace | `dhara/agent.py` |
 | Counterparts, retrievers, rank fusion | `dhara/retrieve.py` |
-| Scope check and the baseline rerankers | `dhara/rerank.py`, `dhara/train_reranker.py` |
+| Reranking, scope check, fine-tuning | `dhara/rerank.py`, `dhara/train_reranker.py` |
 | Context budget and structured answer | `dhara/generate.py` |
 | Verifier | `dhara/verify.py` |
 | Judgment search, briefs, questions about a judgment | `dhara/library.py` |
@@ -62,12 +63,12 @@ flowchart TD
 ## Design choices
 
 - **Section numbers go to the citation graph, not to keyword search.** A question about BNS 103 is mapped to IPC 302, and one retriever searches only the judgment passages that cite either. In keyword search the same numbers hurt, because judgments mostly use the old ones: "103" matches the wrong documents.
-- **The citation graph counts twice in the fusion.** With four retrievers weighted equally, dense and sparse search dilute it. The weight was fixed before measuring and helps on both evaluation splits.
+- **The citation graph counts twice when nothing reranks.** With four retrievers weighted equally, dense and sparse search dilute it. The weight was fixed before measuring and helps on both evaluation splits. The reranker, though, does better from the even fusion, so with it the judgments are reranked from there.
 - **The mapping is data, not a model's guess.** Old-to-new links come from NCRB's official tables, with their relation type (renumbered, merged, split, partly moved, new, dropped). Courts' own "corresponding to" phrases are an independent check (94% agreement).
 - **One section, one chunk.** Statutes are retrieved whole, split only at subsection boundaries, so a proviso never loses the clause it qualifies. Judgments are chunked by numbered paragraph, so an answer can point at "paras 12–14".
 - **The verifier is code.** It drops any statement that cites a passage it wasn't given, names a section that doesn't exist, or presents a repealed section as current law. If more than half the statements fail, Dhara declines to answer.
 - **A bounded agent.** After the first search the model may ask for at most two more, through the same retriever, and every call is in the trace. There is no framework and no open-ended loop, so cost and latency stay predictable.
-- **Rerankers are measured, not assumed.** Three were tried; none beat the weighted fusion at finding old-code precedent on both splits (see [evaluation](evaluation.md)). The fine-tuned one decides whether a question is in scope instead.
+- **The reranker is trained on the corpus, and its training data was the fix.** bge-reranker-base is fine-tuned on pairs mined from training-split judgments. The first version lost to the fusion because its negatives included passages citing the same law as the question, which are often right answers too. Without them it beats the fusion and an LLM reranker on both splits (see [evaluation](evaluation.md)). One model does two jobs: it reranks judgments, and its top statute score decides whether a question is in scope.
 - **Which code applies is a rule.** The offence date decides substantive law; the date proceedings began decides procedure and evidence (BNSS s.531, BSA s.170).
 - **Sexual-offence judgments are included.** The official reports anonymise victims, and leaving out 780 judgments left a gap in an area lawyers search often. They carry a `sensitive` flag, so a deployment can filter them.
 

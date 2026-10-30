@@ -161,6 +161,7 @@ by hash, so no split shares one. Baselines on the test split, right judgment in 
 | Dense only (bge-m3) | 0.31 |
 | BM25 + citation graph over the mapping | 0.37 |
 | BM25 + citation graph (x2) + bge-m3 dense and sparse, rank fusion | 0.38 |
+| BM25 + citation graph + bge-m3, top 50 reranked by a cross-encoder fine-tuned on the train split | 0.43 |
 
 ## Columns
 
