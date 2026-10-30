@@ -182,28 +182,40 @@ def bench() -> None:
 
 
 @app.command()
-def train() -> None:
-    """Training queries → mined pairs → fine-tuned cross-encoder."""
+def train(model: str = "base", teacher: str = "large") -> None:
+    """Training queries → mined pairs → fine-tuned cross-encoder. --model base | large | mini
+    (mini is distilled from --teacher and needs it trained first)."""
     from dhara import train_reranker as tr
     from dhara.retrieve import Index
 
-    typer.echo(f"queries {tr.make_queries()}")
-    typer.echo(f"pairs {tr.mine(Index())}")
-    typer.echo(f"model {tr.train()}")
+    if not tr.PAIRS.exists():
+        typer.echo(f"queries {tr.make_queries()}")
+        typer.echo(f"pairs {tr.mine(Index())}")
+    out = str(tr.MODELS[model])
+    if model == "mini":
+        typer.echo(f"model {tr.distil(str(tr.MODELS[teacher]), out)}")
+    elif model == "large":  # twice the size: half the batch, one pass over the data
+        typer.echo(f"model {tr.train(tr.LARGE, out, epochs=1, batch=4, accumulate=4)}")
+    else:
+        typer.echo(f"model {tr.train(tr.BASE, out)}")
 
 
 @app.command()
 def evaluate(split: str = "dev", only: str = "") -> None:
     """Run the ablation table on DharaBench; --only filters rows by name."""
     from dhara.evaluate import ablate
-    from dhara.train_reranker import OUT_DIR
+    from dhara.train_reranker import MODELS, OUT_DIR
 
-    model = str(OUT_DIR) if (OUT_DIR / "config.json").exists() else None  # the folder exists from the first checkpoint
-    typer.echo(ablate(split, [o for o in only.split(",") if o] or None, finetuned=model))
+    # a folder exists from the first checkpoint, so look for the finished model's config
+    models = {k: str(p) for k, p in MODELS.items() if (p / "config.json").exists()}
+    models |= {f"{k}#int8": f"{p}#int8" for k, p in list(models.items())}
+    if (OUT_DIR / "config.json").exists():
+        models["live"] = str(OUT_DIR)
+    typer.echo(ablate(split, [o for o in only.split(",") if o] or None, models=models))
 
 
 @app.command()
-def calibrate(split: str = "dev") -> None:
+def calibrate(split: str = "dev", top: int = 20, int8: bool = False) -> None:
     """Fit the abstention threshold with the fine-tuned reranker; the API reads it at start-up."""
     import json
 
@@ -211,7 +223,7 @@ def calibrate(split: str = "dev") -> None:
     from dhara.retrieve import Index
     from dhara.train_reranker import OUT_DIR
 
-    out = calibrate_abstention(Index(), str(OUT_DIR), split)
+    out = calibrate_abstention(Index(), str(OUT_DIR) + ("#int8" if int8 else ""), split, top=top)
     (RESULTS / "abstention.json").write_text(json.dumps(out, indent=2))
     typer.echo(out)
 

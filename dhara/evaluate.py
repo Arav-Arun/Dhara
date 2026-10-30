@@ -11,6 +11,7 @@ import math
 import time
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
 from typing import Any
 
 from dhara import bench
@@ -109,15 +110,20 @@ def save(split: str, results: dict[str, dict[str, Any]]) -> str:
     return table
 
 
-def configs(finetuned: str | None = None) -> dict[str, Ranker]:
-    """The ablation rows, cheapest first. Each adds one thing to the row above it."""
+def configs(models: dict[str, str] | None = None) -> dict[str, Ranker]:
+    """The ablation rows, cheapest first. Each adds one thing to the row above it. `models` holds
+    the fine-tuned rerankers that exist (train_reranker.MODELS): "base", "large", "mini"."""
     from dhara import rerank
+    from dhara.agent import legal_terms
 
     def first(use: tuple[str, ...], raw: bool = False) -> Ranker:
         return lambda ix, q: ix.search(q, use=use, expand_codes=not raw, raw=raw)
 
     def then(base: Ranker, step: Callable[[Index, Query, list[Hit]], list[Hit]]) -> Ranker:
         return lambda ix, q: step(ix, q, base(ix, q))
+
+    def reranked(base: Ranker, model: str) -> Ranker:
+        return then(base, lambda ix, q, h: rerank.cross_encoder(ix, q, h, model))
 
     fused = first(("bm25", "cited", "dense", "sparse"))
     rows: dict[str, Ranker] = {
@@ -127,29 +133,40 @@ def configs(finetuned: str | None = None) -> dict[str, Ranker]:
         "+ citation graph": first(("bm25", "cited")),
         "+ bge-m3 dense and sparse, fused by RRF": fused,
         "+ multi-vector rescoring": then(fused, rerank.multivector),
-        "+ cross-encoder (bge-reranker-base)": then(
-            fused, lambda ix, q, h: rerank.cross_encoder(ix, q, h, "BAAI/bge-reranker-base")
-        ),
-        "+ cross-encoder (bge-reranker-v2-m3)": then(
-            fused, lambda ix, q, h: rerank.cross_encoder(ix, q, h, "BAAI/bge-reranker-v2-m3")
-        ),
+        "+ cross-encoder (bge-reranker-base)": reranked(fused, "BAAI/bge-reranker-base"),
+        "+ cross-encoder (bge-reranker-v2-m3)": reranked(fused, "BAAI/bge-reranker-v2-m3"),
         "+ LLM reranker (gpt-6-luna)": then(fused, rerank.llm_rerank),
     }
-    if finetuned:
-        rows["+ fine-tuned cross-encoder, retrained (live)"] = then(
-            fused, lambda ix, q, h: rerank.cross_encoder(ix, q, h, finetuned)
-        )
+    models = models or {}
+    for key, label in (
+        ("base", "fine-tuned bge-reranker-base"),
+        ("large", "fine-tuned bge-reranker-v2-m3"),
+        ("mini", "MiniLM distilled from the fine-tuned v2-m3"),
+    ):
+        if key in models:
+            rows[f"+ {label}"] = reranked(fused, models[key])
+    if "base" in models:
         # dense and sparse dilute the citation graph when every list counts the same; weight 2 was
         # fixed before measuring, so it is not tuned on dev or test
         weighted = lambda ix, q: ix.search(q, use=("bm25", "cited", "dense", "sparse"), weights={"cited": 2.0})  # noqa: E731
         rows["+ fusion with the citation graph weighted x2"] = weighted
-        rows["+ fine-tuned cross-encoder, retrained, over the weighted fusion"] = then(
-            weighted, lambda ix, q, h: rerank.cross_encoder(ix, q, h, finetuned)
-        )
+        rows["+ fine-tuned bge-reranker-base over the weighted fusion"] = reranked(weighted, models["base"])
+    for key in ("base", "large", "mini"):
+        if f"{key}#int8" in models:
+            rows[f"+ the {key} model with 8-bit weights, on the CPU"] = reranked(fused, models[f"{key}#int8"])
+    if "live" in models:
+        live = models["live"]
+
+        def with_terms(ix: Index, q: Query) -> list[Hit]:
+            terms = legal_terms(q.text)
+            searched = replace(q, text=f"{q.text}\n{terms}") if terms else q
+            return rerank.cross_encoder(ix, q, ix.search(searched), live)
+
+        rows["+ questions without a section number put into legal terms first"] = with_terms
     return rows
 
 
-def ablate(split: str = "dev", only: list[str] | None = None, finetuned: str | None = None) -> str:
+def ablate(split: str = "dev", only: list[str] | None = None, models: dict[str, str] | None = None) -> str:
     """Each row is saved as it finishes, and rows already in the results file are skipped, so a
     stopped run resumes. Delete the file to measure everything again."""
     from dhara import rerank
@@ -157,7 +174,7 @@ def ablate(split: str = "dev", only: list[str] | None = None, finetuned: str | N
     ix = Index()
     path = RESULTS / f"{split}.json"
     done = json.loads(path.read_text()) if path.exists() else {}
-    for name, ranker in configs(finetuned).items():
+    for name, ranker in configs(models).items():
         if (only and not any(o in name for o in only)) or name in done:
             continue
         rerank.clear_cache()  # each row pays for its own reranker scores, so its latency is real
@@ -165,13 +182,16 @@ def ablate(split: str = "dev", only: list[str] | None = None, finetuned: str | N
     return (RESULTS / f"{split}.md").read_text()
 
 
-def calibrate_abstention(ix: Index, reranker: str, split: str = "dev", keep: float = 0.95) -> dict[str, float]:
+def calibrate_abstention(
+    ix: Index, reranker: str, split: str = "dev", keep: float = 0.95, top: int = 20
+) -> dict[str, float]:
     """Pick the cross-encoder score below which Dhara declines instead of answering.
 
     In-scope questions (statute and precedent) should clear it; the out-of-scope ones in the
     benchmark (civil, tax, family…) should not. Turning away a real criminal-law question is the worse
     mistake: an off-topic one still only gets criminal-law passages, and every citation is checked.
-    So the threshold is the highest that still answers `keep` of the in-scope questions.
+    So the threshold is the highest that still answers `keep` of the in-scope questions. `top` is how
+    many statutes are scored: the right one is nearly always in the first few, so fewer is cheaper.
     """
     from dhara import rerank
 
@@ -179,7 +199,7 @@ def calibrate_abstention(ix: Index, reranker: str, split: str = "dev", keep: flo
     for item in bench.load(split):
         kind = "statute"  # every question is first checked against the statutes
         q = Query(str(item["query"]), kind=kind)
-        hits = rerank.cross_encoder(ix, q, ix.search(q, k=50, weights=LIVE_WEIGHTS), reranker, top=20)
+        hits = rerank.cross_encoder(ix, q, ix.search(q, k=50, weights=LIVE_WEIGHTS), reranker, top=top)
         scores.append((hits[0].score if hits else -99.0, item["type"] != "abstain"))
     in_scope = sorted(s for s, ok in scores if ok)
     out_scope = [s for s, ok in scores if not ok]
@@ -189,4 +209,5 @@ def calibrate_abstention(ix: Index, reranker: str, split: str = "dev", keep: flo
         "in_scope_answered": round(sum(s >= t for s in in_scope) / len(in_scope), 3),
         "out_of_scope_declined": round(sum(s < t for s in out_scope) / len(out_scope), 3),
         "n": len(scores),
+        "top": top,
     }
