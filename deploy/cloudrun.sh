@@ -23,6 +23,8 @@ find "$CTX" -name __pycache__ -prune -exec rm -rf {} +
 gcloud artifacts repositories describe dhara --location $REGION >/dev/null 2>&1 \
   || gcloud artifacts repositories create dhara --repository-format docker --location $REGION
 gcloud builds submit "$CTX" --config deploy/cloudbuild.yaml --substitutions "_IMAGE=$IMAGE"
+# the uploaded source (~0.9 GB) is only needed during the build
+gcloud storage rm "gs://${PROJECT}_cloudbuild/source/**" --quiet || true
 
 # One instance at most caps the bill, and request-based billing makes idle time free. The
 # reranker is CPU-bound: gen2 and 8 vCPUs bring an answer from ~150 s to ~55 s, and torch must be
