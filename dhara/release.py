@@ -174,6 +174,8 @@ not protected by copyright. Judgment records and citations are derived from the 
 Judgments dataset by Dattam Labs (AWS Open Data, CC-BY-4.0); the judgment text itself is in that
 dataset, and `source_file` names the PDF. This dataset is released under CC-BY-4.0.
 
+Try it live: https://dhara.aravarun.in
+
 Code, method and full results: https://github.com/Arav-Arun/Dhara
 """
 

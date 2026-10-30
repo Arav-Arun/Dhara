@@ -5,6 +5,8 @@
 **Research Indian criminal law across the 2024 change of codes.**
 
 Statutes and 9,686 Supreme Court judgments, searched under the old and new section numbers at once, with every citation checked in code before it is shown.
+
+**[Try it live at dhara.aravarun.in](https://dhara.aravarun.in)**
 </div>
 
 ## About
@@ -15,7 +17,7 @@ On 1 July 2024 the Bharatiya Nyaya Sanhita, Nagarik Suraksha Sanhita and Sakshya
 - **Judgments.** Search the library by section (old or new number), case name, report citation or topic. Each judgment opens with a brief in which every point cites its paragraph, answers questions from its own text, lists related judgments, and marks each old section in the text with today's number.
 - **Check a draft.** Paste an FIR, chargesheet or draft. Each citation is checked against the code in force on the offence date (and the FIR date for procedure) and corrected down to the subsection where the official tables allow, with the First Schedule classification of the offence.
 - **Section pages.** Any section, old or new, through ⌘K: full text, its counterpart, the changed words marked, the First Schedule row and the judgments on it, with a link to the official text.
-- **Hybrid retrieval with a citation graph.** BM25, a retriever over the passages that cite the named sections (or their counterparts), and bge-m3 dense and sparse search, fused by rank. A cross-encoder fine-tuned on pairs mined from the corpus decides whether a question is in scope.
+- **Hybrid retrieval with a citation graph.** BM25, a retriever over the passages that cite the named sections (or their counterparts), and bge-m3 dense and sparse search, fused by rank. A cross-encoder fine-tuned on pairs mined from the corpus reranks the judgments and decides whether a question is in scope.
 - **A verifier, not a promise.** Code, not a model, drops any statement that cites a passage it wasn't given, names a section that doesn't exist, or presents a repealed section as current law.
 - **Its own benchmark.** DharaBench measures every retrieval stage on questions whose answers are known, including new-code questions answered by judgments that cite only the old code.
 
