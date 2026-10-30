@@ -80,13 +80,18 @@ class Pipeline:
     top_judgments: int = 12
     abstain_below: float | None = None  # cross-encoder score, from evaluate.calibrate_abstention
 
-    def first_pass(self, text: str, kind: str, as_of: date, trace: Trace) -> list[Hit]:
+    def first_pass(
+        self, text: str, kind: str, as_of: date, trace: Trace, skip: set[int] | None = None, top: int = 50
+    ) -> list[Hit]:
+        """`skip`: passages already in hand, left out before reranking; `top`: how many to rerank."""
         t = time.perf_counter()
         q = Query(text, as_of=as_of, kind=kind)
         reranked = self.reranker is not None and kind == "judgment"
         # as measured (evaluate.configs): the reranker helps over the even fusion and hurts over the
         # weighted one, and it doesn't help statutes, which keep the weighted order
         hits = self.ix.search(q, k=100, weights=None if reranked else LIVE_WEIGHTS)
+        if skip:
+            hits = [h for h in hits if h.ord not in skip]
         trace.add(
             f"retrieve:{kind}",
             t,
@@ -97,7 +102,7 @@ class Pipeline:
         )
         if reranked and self.reranker:
             t = time.perf_counter()
-            hits = rerank.cross_encoder(self.ix, q, hits, self.reranker)
+            hits = rerank.cross_encoder(self.ix, q, hits, self.reranker, top=top)
             trace.add(
                 f"rerank:{kind}", t, top=[{"unit": self.ix.ids[h.ord], "score": round(h.score, 3)} for h in hits[:10]]
             )
@@ -109,7 +114,10 @@ class Pipeline:
         as_of: date | None = None,
         trace: Trace | None = None,
         history: list[dict[str, str]] | None = None,
+        on_draft: Callable[[dict[str, Any]], None] | None = None,
     ) -> dict[str, Any]:
+        """`on_draft` receives the short answer and each point as soon as they are written and have
+        passed the same checks as the final answer, which follows and replaces them."""
         as_of = as_of or date.today()
         trace = trace or Trace()
         if history:
@@ -153,11 +161,22 @@ class Pipeline:
             passages=[{"id": c["id"], "unit": c["unit"]} for c in context],
             words=sum(len(c["text"].split()) for c in context),
         )
+        ids = {c["id"] for c in context}
+
+        def draft(kind: str, item: Any) -> None:
+            if on_draft is None:
+                return
+            if kind == "short_answer":
+                if not verify.check({"short_answer": item}, ids, self.ix.con, as_of).summary_problem:
+                    on_draft({"short_answer": item})
+            elif verify.check({"points": [item]}, ids, self.ix.con, as_of).kept:
+                on_draft({"point": item})
+
         t = time.perf_counter()
-        ans = generate.answer(question, context, as_of)
+        ans = generate.answer(question, context, as_of, draft if on_draft else None)
         trace.add("generate", t)
         t = time.perf_counter()
-        report = verify.check(ans, {c["id"] for c in context}, self.ix.con, as_of)
+        report = verify.check(ans, ids, self.ix.con, as_of)
         trace.add(
             "verify",
             t,
@@ -166,7 +185,6 @@ class Pipeline:
             dropped=[{"text": p["text"][:80], "why": why} for p, why in report.dropped],
         )
         abstain = bool(ans.get("abstain")) or report.abstain
-        ids = {c["id"] for c in context}
         # authorities pass the same checks as points (a judgment passage we supplied, real sections),
         # once each; a caveat that cites a passage we didn't supply is dropped
         listed = list({a["id"]: a for a in ans.get("authorities", []) if a["id"].startswith("J")}.values())
@@ -234,10 +252,10 @@ class Pipeline:
         ).get("searches", [])[: self.followups]
         trace.add("plan", t, searches=plan)
         for s in plan:
-            extra = self.first_pass(s["query"], s["kind"], as_of, trace)
             pool = statutes if s["kind"] == "statute" else judgments
-            have = {h.ord for h in pool}
+            # only passages not already in hand can add anything, and six of them are kept, so
+            # reranking the best 20 new ones is enough (the first pass, as measured, still reranks 50)
+            extra = self.first_pass(s["query"], s["kind"], as_of, trace, skip={h.ord for h in pool}, top=20)
             # interleave: keep the original top results first, then the new ones
-            new = [h for h in extra[:6] if h.ord not in have]
-            pool[6:6] = new
+            pool[6:6] = extra[:6]
         return statutes, judgments
