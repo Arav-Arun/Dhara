@@ -18,7 +18,7 @@ from dhara.config import settings
 # USD per 1M tokens for gpt-6-luna as reported publicly; only used for the running estimate
 PRICE_IN, PRICE_OUT = 0.10, 0.50
 # calls a visitor can trigger; benchmark building and evaluation are not counted against the daily cap
-PUBLIC = {"answer", "agent:followup", "agent:rewrite", "brief", "ask"}
+PUBLIC = {"answer", "agent:followup", "agent:rewrite", "agent:terms", "brief", "ask"}
 _client: OpenAI | None = None
 log = logging.getLogger(__name__)
 

@@ -260,6 +260,7 @@ const STAGE: Record<string, string> =
     {
         rewrite: "Read the follow-up in context",
         route: "Read the question",
+        terms: "Put the question in legal terms",
         "retrieve:statute": "Searched the codes",
         "retrieve:judgment": "Searched the judgments",
         "rerank:judgment": "Re-ranked judgments",
@@ -313,6 +314,7 @@ function Step({ event: e }: { event: Event })
         <li className="border-l-2 border-rule pl-3">
             <div className="flex justify-between gap-3"><span>{STAGE[e.stage] ?? e.stage}</span><span className="figures text-graphite">{e.ms} ms</span></div>
             {e.stage === "rewrite" && <p className="mt-0.5 text-graphite">“{e.question as string}”</p>}
+            {e.stage === "terms" && <p className="mt-0.5 text-graphite">{e.terms as string}</p>}
             {refs.length > 0 && <p className="mt-0.5 text-graphite">Named {refs.map(label).join(", ")}</p>}
             {counterparts.length > 0 && <p className="mt-0.5 text-graphite">Also searched under {counterparts.map(label).join(", ")}</p>}
             {e.stage === "plan" && <p className="mt-0.5 text-graphite">{searches.length === 0 ? "None needed" : searches.map((s) => `“${s.query}”`).join("; ")}</p>}
