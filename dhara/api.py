@@ -67,9 +67,12 @@ def pipeline() -> Pipeline:
         model = settings.processed_dir / "models" / "dhara-reranker"
         trained = (model / "config.json").exists()  # the folder appears with the first checkpoint
         cal = settings.processed_dir.parent.parent / "eval" / "results" / "abstention.json"
-        threshold = json.loads(cal.read_text())["threshold"] if cal.exists() and trained else None
-        path = str(model) if trained else None  # one fine-tuned model reranks judgments and gates scope
-        _state["pipeline"] = Pipeline(Index(), reranker=path, gate=path, abstain_below=threshold)
+        gate = json.loads(cal.read_text()) if cal.exists() and trained else {}
+        path = str(model) + ("#int8" if settings.dhara_int8 else "") if trained else None
+        # one fine-tuned model reranks judgments and gates scope
+        _state["pipeline"] = Pipeline(
+            Index(), reranker=path, gate=path, abstain_below=gate.get("threshold"), gate_top=gate.get("top", 20)
+        )
     return _state["pipeline"]  # type: ignore[no-any-return]
 
 
