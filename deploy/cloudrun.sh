@@ -24,8 +24,17 @@ gcloud artifacts repositories describe dhara --location $REGION >/dev/null 2>&1 
   || gcloud artifacts repositories create dhara --repository-format docker --location $REGION
 gcloud builds submit "$CTX" --config deploy/cloudbuild.yaml --substitutions "_IMAGE=$IMAGE"
 
-# one instance at most caps the bill; request-based billing means idle time is free
-gcloud run deploy dhara-api --image "$IMAGE" --region $REGION \
-  --cpu 2 --memory 8Gi --cpu-boost --concurrency 8 --min-instances 0 --max-instances 1 --timeout 300 \
+# One instance at most caps the bill, and request-based billing makes idle time free. The
+# reranker is CPU-bound: gen2 and 8 vCPUs bring an answer from ~150 s to ~55 s, and torch must be
+# told the vCPU count or it sizes its thread pool from the host's cores.
+gcloud run deploy dhara-api --image "$IMAGE" --region $REGION --execution-environment gen2 \
+  --cpu 8 --memory 8Gi --cpu-boost --concurrency 8 --min-instances 0 --max-instances 1 --timeout 300 \
   --allow-unauthenticated --set-secrets OPENAI_API_KEY=dhara-openai-key:latest \
-  --set-env-vars "^|^DHARA_DAILY_USD=1|DHARA_ALLOWED_ORIGINS=$ORIGINS"
+  --set-env-vars "^|^DHARA_DAILY_USD=1|DHARA_ALLOWED_ORIGINS=$ORIGINS|OMP_NUM_THREADS=8|MKL_NUM_THREADS=8|TOKENIZERS_PARALLELISM=false"
+
+# each image is ~4 GB of paid storage: keep only the one in use
+gcloud artifacts docker images list "$REGION-docker.pkg.dev/$PROJECT/dhara/dhara-api" --format 'value(version)' \
+  | grep -v "$(gcloud artifacts docker images describe "$IMAGE" --format 'value(image_summary.digest)')" \
+  | while read -r digest; do
+      gcloud artifacts docker images delete "$REGION-docker.pkg.dev/$PROJECT/dhara/dhara-api@$digest" --delete-tags --quiet
+    done
