@@ -11,20 +11,36 @@ export default function Waking()
 
     useEffect(() =>
     {
-        let answered = false;
-        const slow = setTimeout(() => !answered && setState("slow"), 3000);
-        fetch(`${API}/v1/meta`, { signal: AbortSignal.timeout(90000) })
-            .then((r) =>
+        const started = Date.now();
+        let stop = false;
+        const slow = setTimeout(() => !stop && setState((s) => (s === "ok" ? "slow" : s)), 3000);
+        (async () =>
+        {
+            // a waking instance can refuse connections at first, so keep asking for two minutes
+            while (!stop && Date.now() - started < 120000)
             {
-                answered = true;
-                setState(r.ok ? "ok" : "down");
-            })
-            .catch(() =>
+                const ok = await fetch(`${API}/v1/meta`, { signal: AbortSignal.timeout(90000) })
+                    .then((r) => r.ok)
+                    .catch(() => false);
+                if (ok)
+                {
+                    stop = true;
+                    setState("ok");
+                    return;
+                }
+                setState("slow");
+                await new Promise((r) => setTimeout(r, 3000));
+            }
+            if (!stop)
             {
-                answered = true;
                 setState("down");
-            });
-        return () => clearTimeout(slow);
+            }
+        })();
+        return () =>
+        {
+            stop = true;
+            clearTimeout(slow);
+        };
     }, []);
 
     if (state === "ok")
