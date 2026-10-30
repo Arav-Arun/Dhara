@@ -8,7 +8,7 @@ export function ToolBody({ t }: { t: Tool })
 {
     return (
         <>
-            <Folder src={`/art/cover-${t.cover}.jpg`} className="w-[56%] max-w-[230px] xl:w-[40%]" />
+            <Folder src={`/art/cover-${t.cover}.webp`} className="w-[56%] max-w-[230px] xl:w-[40%]" />
             <div className="flex flex-1 flex-col">
                 <h3 className="text-[24px] leading-tight font-medium tracking-[-0.03em]">{t.name}</h3>
                 <ul className="mt-3 space-y-1.5 text-[14px] text-ink/85">

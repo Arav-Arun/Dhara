@@ -14,6 +14,13 @@ export const metadata: Metadata =
     {
         title: { default: "Dhara · IPC to BNS", template: "%s · Dhara" },
         description: "Statutes, the official IPC to BNS mapping, and Supreme Court precedent found under either numbering.",
+        metadataBase: new URL("https://dhara.aravarun.in"),
+        openGraph: {
+            type: "website",
+            siteName: "Dhara",
+            images: [{ url: "/opengraph.webp", width: 1200, height: 648, type: "image/webp", alt: "Dhara: Indian criminal law research, IPC to BNS" }],
+        },
+        twitter: { card: "summary_large_image", images: ["/opengraph.webp"] },
     };
 
 const NAV = [
