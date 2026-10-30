@@ -97,12 +97,11 @@ class Index:
         if self.model is None:
             from FlagEmbedding import BGEM3FlagModel
 
-            from dhara.config import settings
-            from dhara.index import _device
+            from dhara.index import _device, embed_model
 
             device = _device()
             # half precision only on a GPU; a CPU server (production) runs it in full precision
-            self.model = BGEM3FlagModel(settings.dhara_embed_model, use_fp16=device != "cpu", devices=device)
+            self.model = BGEM3FlagModel(embed_model(), use_fp16=device != "cpu", devices=device)
         return self.model
 
     def mask(self, q: Query) -> np.ndarray:

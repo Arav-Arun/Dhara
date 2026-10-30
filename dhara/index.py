@@ -104,7 +104,7 @@ def encode(batch: int = 32, max_length: int = 512) -> int:
     all_texts = texts(con)
     shards = index_dir() / "shards"
     shards.mkdir(exist_ok=True)
-    model = BGEM3FlagModel(settings.dhara_embed_model, use_fp16=True, devices=_device())
+    model = BGEM3FlagModel(embed_model(), use_fp16=True, devices=_device())
     done = 0
     for s in range(0, len(all_texts), SHARD):
         out = shards / f"{s // SHARD:05d}.npz"
@@ -149,6 +149,13 @@ def assemble() -> dict[str, int]:
     meta = {"units": int(sum(d.shape[0] for d in dense)), "shards": len(files)}
     (index_dir() / "meta.json").write_text(json.dumps(meta))
     return meta
+
+
+def embed_model() -> str:
+    """Local path to bge-m3 without its ONNX export (2.3 GB), which FlagEmbedding would download too."""
+    from huggingface_hub import snapshot_download
+
+    return snapshot_download(settings.dhara_embed_model, ignore_patterns=["onnx/*", "imgs/*", "*.jpg"])
 
 
 def _device() -> str:
