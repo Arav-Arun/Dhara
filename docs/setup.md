@@ -51,6 +51,5 @@ make test   # pytest
 | `DHARA_LLM_MODEL` | no | the answering model (default `gpt-6-luna`) |
 | `DHARA_DAILY_USD` | no | the most the public site spends on the model per day (default 1) |
 | `DHARA_ALLOWED_ORIGINS` | no | the site's address for CORS (default `*`) |
+| `DHARA_PRELOAD` | no | load the index and models at start-up instead of on the first question |
 | `NEXT_PUBLIC_DHARA_API` | no | where the site finds the API (default `http://localhost:8787`) |
-
-To host it, see [deployment](deploy.md).

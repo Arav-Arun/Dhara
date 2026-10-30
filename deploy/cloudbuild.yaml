@@ -1,8 +1,0 @@
-# Used by deploy/cloudrun.sh, which uploads a build folder holding only what the image needs.
-steps:
-  - name: gcr.io/cloud-builders/docker
-    args: ["build", "-f", "deploy/cloudrun.Dockerfile", "-t", "${_IMAGE}", "."]
-images: ["${_IMAGE}"]
-timeout: 3600s
-options:
-  diskSizeGb: 100

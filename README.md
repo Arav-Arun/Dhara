@@ -95,7 +95,7 @@ make api                                 # http://localhost:8787
 make web                                 # http://localhost:3000
 ```
 
-**More:** [setup, scripts and settings](docs/setup.md) · [deployment](docs/deploy.md)
+**More:** [setup, scripts and settings](docs/setup.md)
 
 ## Project structure
 
@@ -104,7 +104,7 @@ dhara/     Python package: ingestion, retrieval, generation, verification, evalu
 web/       Next.js site
 eval/      DharaBench questions and results
 tests/     pytest suite
-docs/      architecture, evaluation, setup, deployment
+docs/      architecture, evaluation, setup
 ```
 
 ## Limits
