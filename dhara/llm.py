@@ -7,6 +7,7 @@ purpose), so the $20 budget is visible at all times (`dhara llm-usage`).
 import json
 import logging
 import time
+from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 
@@ -31,26 +32,46 @@ def client() -> OpenAI:
     return _client
 
 
-def json_call(system: str, user: str, schema: dict[str, Any], purpose: str, max_tokens: int = 1500) -> dict[str, Any]:
+def json_call(
+    system: str,
+    user: str,
+    schema: dict[str, Any],
+    purpose: str,
+    max_tokens: int = 1500,
+    on_text: Callable[[str], None] | None = None,
+) -> dict[str, Any]:
     """Chat completion constrained to a JSON schema; returns the parsed object, or {} after 4 tries.
 
     Empty or cut-off output (the model can spend its budget thinking) is retried with more room.
+    With `on_text` the reply is streamed, and the JSON written so far is passed on after every chunk.
     """
     budget = max_tokens
     api = client()  # a missing key fails here, at once, rather than as four silent retries
     for attempt in range(4):
         try:
-            r = api.chat.completions.create(
-                model=settings.dhara_llm_model,
-                messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
-                response_format={
+            request: dict[str, Any] = {
+                "model": settings.dhara_llm_model,
+                "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
+                "response_format": {
                     "type": "json_schema",
                     "json_schema": {"name": "out", "schema": schema, "strict": True},
                 },
-                max_completion_tokens=budget,
-            )
-            _log(purpose, r.usage.prompt_tokens if r.usage else 0, r.usage.completion_tokens if r.usage else 0)
-            out = json.loads(r.choices[0].message.content or "{}")
+                "max_completion_tokens": budget,
+            }
+            if on_text:
+                text, usage = "", None
+                for chunk in api.chat.completions.create(
+                    **request, stream=True, stream_options={"include_usage": True}
+                ):
+                    usage = chunk.usage or usage
+                    if chunk.choices and chunk.choices[0].delta.content:
+                        text += chunk.choices[0].delta.content
+                        on_text(text)
+            else:
+                r = api.chat.completions.create(**request)
+                text, usage = r.choices[0].message.content or "", r.usage
+            _log(purpose, usage.prompt_tokens if usage else 0, usage.completion_tokens if usage else 0)
+            out = json.loads(text or "{}")
             if all(k in out for k in schema.get("required", [])):
                 return dict(out)
         except json.JSONDecodeError:

@@ -6,6 +6,9 @@ authoritative); judgments are capped per judgment and de-duplicated; we stop at 
 Every passage gets a span id ([S1], [J3]) that the model must cite and the verifier checks.
 """
 
+import json
+import re
+from collections.abc import Callable
 from datetime import date
 from typing import Any
 
@@ -125,10 +128,58 @@ def _statute_title(ix: Index, pid: str) -> str:
     return f"{act} section {num} ({'now' if old else 'formerly'} {names})"
 
 
-def answer(question: str, context: list[dict[str, Any]], as_of: date) -> dict[str, Any]:
+SUMMARY = re.compile(r'"short_answer"\s*:\s*"((?:[^"\\]|\\.)*)"')
+
+
+class Drafts:
+    """Picks the short answer and each finished point out of the JSON as it streams, so they can be
+    checked and shown while the rest is still being written. The schema fixes the key order:
+    abstain, short_answer, points, then the rest."""
+
+    def __init__(self, emit: Callable[[str, Any], None]) -> None:
+        self.emit, self.summary, self.points = emit, False, 0
+
+    def feed(self, text: str) -> None:
+        if re.search(r'"abstain"\s*:\s*true', text):
+            return
+        if not self.summary and (m := SUMMARY.search(text)):
+            self.summary = True
+            self.emit("short_answer", json.loads(f'"{m.group(1)}"'))
+        start = text.find('"points"')
+        if start >= 0:
+            done = _objects(text, text.find("[", start))
+            for point in done[self.points :]:
+                self.emit("point", point)
+            self.points = max(self.points, len(done))
+
+
+def _objects(text: str, i: int) -> list[dict[str, Any]]:
+    """The complete objects in the JSON array that opens at text[i], however far it has got."""
+    out, depth, start, in_str, escaped = [], 0, 0, False, False
+    for j in range(i + 1, len(text)) if i >= 0 else ():
+        c = text[j]
+        if in_str:
+            in_str, escaped = (c != '"' or escaped), (c == "\\" and not escaped)
+        elif c == '"':
+            in_str = True
+        elif c == "{":
+            depth, start = depth + 1, (j if depth == 0 else start)
+        elif c == "}":
+            depth -= 1
+            if depth == 0:
+                out.append(json.loads(text[start : j + 1]))
+        elif c == "]" and depth == 0:
+            break
+    return out
+
+
+def answer(
+    question: str, context: list[dict[str, Any]], as_of: date, on_draft: Callable[[str, Any], None] | None = None
+) -> dict[str, Any]:
     passages = "\n\n".join(f"[{c['id']}] {c['title']}\n{c['text']}" for c in context)
     user = f"Date of the question: {as_of.isoformat()}\nQuestion: {question}\n\nPassages:\n{passages}"
-    return llm.json_call(SYSTEM, user, SCHEMA, "answer", max_tokens=2500) or {
+    stream = Drafts(on_draft).feed if on_draft else None
+    return llm.json_call(SYSTEM, user, SCHEMA, "answer", max_tokens=2500, on_text=stream) or {
         "abstain": True,
         "short_answer": "",
         "points": [],

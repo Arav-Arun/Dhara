@@ -281,10 +281,13 @@ async def research(body: Ask, request: Request) -> EventSourceResponse:
         def emit(e: dict[str, Any]) -> None:
             loop.call_soon_threadsafe(queue.put_nowait, {"event": "trace", "data": e})
 
+        def draft(d: dict[str, Any]) -> None:  # checked parts of the answer, ahead of the whole of it
+            loop.call_soon_threadsafe(queue.put_nowait, {"event": "draft", "data": d})
+
         trace = Trace(on_event=emit)
         try:
             history = [t.model_dump() for t in body.history[-2:]]
-            result = pipeline().run(body.query, body.as_of, trace, history)
+            result = pipeline().run(body.query, body.as_of, trace, history, on_draft=draft)
             result.pop("trace", None)
             for passage in result.get("context", []):
                 passage.update(describe(passage))

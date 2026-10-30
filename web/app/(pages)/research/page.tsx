@@ -4,10 +4,12 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { API, failure, label } from "@/lib/api";
 import { EXAMPLES } from "@/components/AskBox";
-import AnswerView, { type Answer } from "@/components/Answer";
+import AnswerView, { type Answer, type Point } from "@/components/Answer";
 
 type Event = { stage: string; ms: number; [k: string]: unknown };
-type Turn = { q: string; events: Event[]; answer: Answer | null; error: string };
+// parts of the answer that have already passed the citation checks, shown while the rest is written
+type Draft = { short_answer?: string; points: Point[] };
+type Turn = { q: string; events: Event[]; draft: Draft; answer: Answer | null; error: string };
 
 // Reads the server-sent events from POST /v1/research: trace events as each stage finishes, then the answer.
 async function stream(body: unknown, onEvent: (name: string, data: unknown) => void)
@@ -66,7 +68,7 @@ function Research()
         // earlier answers go along so the agent can turn "and if he was a juvenile?" into a full question
         const history = previous.filter((t) => t.answer?.short_answer).map((t) => ({ q: t.answer!.question, a: t.answer!.short_answer! }));
         const patch = (f: (t: Turn) => Turn) => setTurns((all) => all.map((t, j) => (j === i ? f(t) : t)));
-        setTurns([...previous, { q: text.trim(), events: [], answer: null, error: "" }]);
+        setTurns([...previous, { q: text.trim(), events: [], draft: { points: [] }, answer: null, error: "" }]);
         setQ("");
         setBusy(true);
         await stream({ query: text.trim(), as_of: asOf || null, history }, (name, data) =>
@@ -74,6 +76,11 @@ function Research()
             if (name === "trace")
             {
                 patch((t) => ({ ...t, events: [...t.events, data as Event] }));
+            }
+            else if (name === "draft")
+            {
+                const d = data as { short_answer?: string; point?: Point };
+                patch((t) => ({ ...t, draft: d.point ? { ...t.draft, points: [...t.draft.points, d.point] } : { ...t.draft, short_answer: d.short_answer } }));
             }
             else if (name === "answer")
             {
@@ -147,7 +154,7 @@ function Research()
                             )}
                             <div className="mt-5">
                                 {t.error && <p className="text-redtape">{t.error}</p>}
-                                {!t.answer && !t.error && <Pending events={t.events} />}
+                                {!t.answer && !t.error && <Pending events={t.events} draft={t.draft} />}
                                 {t.answer && <AnswerView turn={i} answer={t.answer} onAsk={ask} />}
                             </div>
                         </section>
@@ -216,15 +223,31 @@ function Composer({ q, setQ, asOf, setAsOf, busy, onAsk, first }: ComposerProps)
     );
 }
 
-// While the answer is being written: the latest step, and grey bars where the answer will go.
-function Pending({ events }: { events: Event[] })
+// While the answer is being written: the latest step, any parts already checked, and grey bars
+// where the rest will go. Citation marks are left out until the sources arrive with the answer.
+function Pending({ events, draft }: { events: Event[]; draft: Draft })
 {
     const now = events.at(-1);
+    const plain = (text: string) => text.replace(/\s*\[[SJ]\d+\]/g, "");
+    const started = !!draft.short_answer || draft.points.length > 0;
     return (
         <div className="rounded-[18px] bg-sheet p-6 ring-1 ring-rule sm:p-8">
+            {draft.short_answer && <p className="mb-5 font-serif text-[21px] leading-[1.6]">{plain(draft.short_answer)}</p>}
+            {draft.points.length > 0 && (
+                <ul className="mb-6 space-y-3 font-serif text-[17px] leading-[1.7] text-ink/90">
+                    {draft.points.map((p, i) => (
+                        <li key={i} className="flex gap-3">
+                            <span className="mt-[11px] h-1.5 w-1.5 shrink-0 rounded-full bg-stamp/40" />
+                            <span>{plain(p.text)}</span>
+                        </li>
+                    ))}
+                </ul>
+            )}
             <p className="flex items-center gap-2 text-sm text-stamp">
                 <span className="h-2 w-2 animate-pulse rounded-full bg-stamp" />
-                {now ? `${STAGE[now.stage] ?? now.stage}. Working on the next step` : "Reading the question"}
+                {started
+                    ? "Writing the rest. Each point appears once its citations check out"
+                    : now ? `${STAGE[now.stage] ?? now.stage}. Working on the next step` : "Reading the question"}
             </p>
             <div className="mt-5 space-y-3" aria-hidden="true">
                 {[92, 78, 85, 60].map((w) => <div key={w} className="h-3 animate-pulse rounded-full bg-paper" style={{ width: `${w}%` }} />)}
