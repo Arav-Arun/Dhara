@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     dhara_llm_model: str = "gpt-6-luna"
     dhara_daily_usd: float = 1.0  # what the public site may spend on the model per day
     dhara_allowed_origins: str = "*"  # comma-separated; set to the site's address in production
+    dhara_preload: bool = False  # load the index and models at start-up instead of on the first question
     dhara_embed_model: str = "BAAI/bge-m3"
 
     data_dir: Path = ROOT / "data"

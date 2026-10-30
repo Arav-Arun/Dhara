@@ -20,6 +20,7 @@ import threading
 import time
 from collections import defaultdict
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from datetime import date
 from typing import Any
 
@@ -34,7 +35,17 @@ from dhara.citations import extract
 from dhara.config import INDIA_CODE_PDF, sc_pdf_url, settings
 from dhara.retrieve import Index
 
-app = FastAPI(title="Dhara API", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    """On a scale-to-zero host the start-up runs with extra CPU and requests wait for it, so the
+    first visitor doesn't also pay for loading the index, bge-m3 and the reranker."""
+    if settings.dhara_preload:
+        pipeline().first_pass("murder", "judgment", date.today(), Trace())
+    yield
+
+
+app = FastAPI(title="Dhara API", version="0.1.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in settings.dhara_allowed_origins.split(",")],
