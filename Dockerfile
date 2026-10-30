@@ -17,6 +17,6 @@ COPY dhara ./dhara
 COPY eval/results ./eval/results
 
 EXPOSE 8787
-# Caddy on the host forwards each visitor's address; trusting it is safe because the port is
-# published on 127.0.0.1 only, and without it every visitor shares one rate limit
+# the reverse proxy in front forwards each visitor's address; without it every visitor would
+# share one rate limit (publish the port on 127.0.0.1 only, so nothing else can set the header)
 CMD ["uvicorn", "dhara.api:app", "--host", "0.0.0.0", "--port", "8787", "--proxy-headers", "--forwarded-allow-ips", "*"]

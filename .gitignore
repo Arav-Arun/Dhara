@@ -1,5 +1,8 @@
 # secrets
 .env
+.kaggle/
+kaggle.json
+access_token
 # python
 .venv/
 __pycache__/
@@ -12,17 +15,10 @@ data/
 models/
 *.sqlite
 *.onnx
+logs/
 # web
 node_modules/
 .next/
 .vercel/
 # os
 .DS_Store
-
-# credentials
-.kaggle/
-kaggle.json
-access_token
-
-
-logs/
