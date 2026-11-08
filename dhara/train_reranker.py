@@ -228,6 +228,7 @@ def _fit(
         save_strategy="steps",
         save_steps=150,
         save_total_limit=2,
+        fp16=torch.cuda.is_available(),  # mixed precision on an NVIDIA GPU (Apple's trains in full precision)
         report_to="none",
         dataloader_drop_last=True,
     )

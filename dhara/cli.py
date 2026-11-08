@@ -215,6 +215,14 @@ def evaluate(split: str = "dev", only: str = "") -> None:
 
 
 @app.command()
+def terms(split: str = "dev") -> None:
+    """Write the legal search terms for a split's questions ahead of an evaluation run."""
+    from dhara.evaluate import write_terms
+
+    typer.echo(f"terms {write_terms(split)}")
+
+
+@app.command()
 def calibrate(split: str = "dev", top: int = 20, int8: bool = False) -> None:
     """Fit the abstention threshold with the fine-tuned reranker; the API reads it at start-up."""
     import json

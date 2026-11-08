@@ -15,10 +15,11 @@ from dataclasses import replace
 from typing import Any
 
 from dhara import bench
-from dhara.config import ROOT
+from dhara.config import ROOT, settings
 from dhara.retrieve import LIVE_WEIGHTS, Hit, Index, Query, strip_refs
 
 RESULTS = ROOT / "eval" / "results"
+TERMS = settings.processed_dir / "legal_terms.json"  # written by write_terms, so a GPU machine needs no API key
 Ranker = Callable[[Index, Query], list[Hit]]
 
 
@@ -157,13 +158,29 @@ def configs(models: dict[str, str] | None = None) -> dict[str, Ranker]:
     if "live" in models:
         live = models["live"]
 
+        known = json.loads(TERMS.read_text()) if TERMS.exists() else {}
+
         def with_terms(ix: Index, q: Query) -> list[Hit]:
-            terms = legal_terms(q.text)
+            terms = known[q.text] if q.text in known else legal_terms(q.text)
             searched = replace(q, text=f"{q.text}\n{terms}") if terms else q
             return rerank.cross_encoder(ix, q, ix.search(searched), live)
 
         rows["+ questions without a section number put into legal terms first"] = with_terms
     return rows
+
+
+def write_terms(split: str) -> int:
+    """The legal search terms for every question in `split`, as the "legal terms" row would ask for them."""
+    from dhara.agent import legal_terms
+
+    known = json.loads(TERMS.read_text()) if TERMS.exists() else {}
+    items = bench.load(split)
+    queries = {str(x["query"]) for x in items} | {strip_refs(x["query"]) for x in items if x["type"] == "precedent"}
+    todo = sorted(q for q in queries if q not in known)
+    with ThreadPoolExecutor(8) as pool:
+        known |= dict(zip(todo, pool.map(legal_terms, todo), strict=True))
+    TERMS.write_text(json.dumps(known, indent=1, ensure_ascii=False))
+    return len(known)
 
 
 def ablate(split: str = "dev", only: list[str] | None = None, models: dict[str, str] | None = None) -> str:

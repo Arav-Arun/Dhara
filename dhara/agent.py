@@ -76,7 +76,7 @@ def legal_terms(question: str) -> str:
     wording ("killed in a sudden fight") misses judgments written in the law's own words."""
     if extract(question, query=True):
         return ""
-    out = llm.json_call(TERMS_SYS, question, TERMS_SCHEMA, "agent:terms", max_tokens=120)
+    out = llm.json_call(TERMS_SYS, question, TERMS_SCHEMA, "agent:terms", max_tokens=600)
     return str(out.get("terms", "")).strip()
 
 
