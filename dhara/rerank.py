@@ -53,7 +53,13 @@ def multivector(ix: Index, q: Query, hits: list[Hit], top: int = 30) -> list[Hit
 
 
 def clear_cache() -> None:
+    """Forget scores and loaded models, so the next row pays for its own and a GPU holds one model at a time."""
     _scored.clear()
+    _cross.clear()
+    import torch
+
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
 
 def cross_encoder(ix: Index, q: Query, hits: list[Hit], model_name: str, top: int = 50) -> list[Hit]:

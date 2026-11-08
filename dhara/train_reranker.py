@@ -24,10 +24,10 @@ import random
 from typing import Any
 
 from dhara import bench, db
-from dhara.config import ROOT, settings
+from dhara.config import settings
 from dhara.retrieve import LIVE_WEIGHTS, Index, Query
 
-PAIRS = ROOT / "data" / "processed" / "train_pairs.jsonl"
+PAIRS = settings.processed_dir / "train_pairs.jsonl"
 BASE = "BAAI/bge-reranker-base"
 LARGE = "BAAI/bge-reranker-v2-m3"
 STUDENT = "cross-encoder/ms-marco-MiniLM-L-6-v2"
