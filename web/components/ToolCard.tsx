@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export type Tool = { name: string; cover: string; card: string; stat: string; points: string[]; cta: React.ReactNode };
 
-// The inside of a home-page tool card, after the course covers on fanout.sh. The wrapper is a
+// The inside of a home-page tool card, its cover set like a printed folder. The wrapper is a
 // link for pages and a button for the ⌘K finder, so it is passed in rather than built here.
 export function ToolBody({ t }: { t: Tool })
 {

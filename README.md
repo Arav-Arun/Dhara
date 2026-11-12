@@ -7,6 +7,11 @@
 Statutes and 9,686 Supreme Court judgments, searched under the old and new section numbers at once, with every citation checked in code before it is shown.
 
 **[Try it live at dhara.aravarun.in](https://dhara.aravarun.in)**
+
+[![CI](https://github.com/Arav-Arun/Dhara/actions/workflows/ci.yml/badge.svg)](https://github.com/Arav-Arun/Dhara/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Model on Hugging Face](https://img.shields.io/badge/model-dhara--reranker-yellow?logo=huggingface)](https://huggingface.co/AravArun/dhara-reranker)
+[![Dataset on Hugging Face](https://img.shields.io/badge/dataset-IPC%20to%20BNS-yellow?logo=huggingface)](https://huggingface.co/datasets/AravArun/dhara-indian-criminal-law)
 </div>
 
 ## About
@@ -83,7 +88,9 @@ The benchmark was tripled from 150 to 450 precedent questions per split, and the
 
 ## Tech stack
 
-Python 3.12 · FastAPI · SQLite · bm25s · BAAI/bge-m3 · sentence-transformers · PyTorch · OpenAI API · Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 · Docker · GitHub Actions
+Python 3.12 · FastAPI · SQLite · bm25s · BAAI/bge-m3 · sentence-transformers · PyTorch · OpenAI API · Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 · GitHub Actions
+
+The API runs on Google Cloud Run and the site on Vercel.
 
 ## Getting started
 

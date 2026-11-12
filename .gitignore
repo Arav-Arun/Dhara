@@ -22,8 +22,3 @@ node_modules/
 .vercel/
 # os
 .DS_Store
-# deployment (kept local)
-deploy/
-Dockerfile
-.dockerignore
-docs/deploy.md
