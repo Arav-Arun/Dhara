@@ -6,8 +6,6 @@
 
 It finds Supreme Court precedent under the old and the new section numbers at once, answers from it, and checks every citation in code before it is shown.
 
-**[Try it live at dhara.aravarun.in](https://dhara.aravarun.in)**
-
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Model on Hugging Face](https://img.shields.io/badge/model-dhara--reranker-yellow?logo=huggingface)](https://huggingface.co/AravArun/dhara-reranker)
 [![Dataset on Hugging Face](https://img.shields.io/badge/dataset-IPC%20to%20BNS-yellow?logo=huggingface)](https://huggingface.co/datasets/AravArun/dhara-indian-criminal-law)
@@ -74,9 +72,6 @@ A second set has 40 questions typed the way people ask them, mostly without a se
 - **Judgments.** Search by section (old or new number), case name, citation or topic. Each judgment opens with a cited brief, answers questions from its own text, and marks every old section in it with today's number.
 - **Section pages.** Any section, old or new, through ⌘K: its text, its counterpart in the other code, and the judgments on it.
 
-> [!NOTE]
-> Dhara is a research aid, not legal advice. It covers the six criminal codes and the Supreme Court's criminal judgments, May 1950 to 7 September 2026.
-
 ## Screenshots
 
 <table>
@@ -93,12 +88,6 @@ A second set has 40 questions typed the way people ask them, mostly without a se
     <td width="50%"><img src="docs/screenshots/method.webp" width="100%" /><br>Method: how a question is answered, step by step, with the measured results</td>
   </tr>
 </table>
-
-## Tech stack
-
-Python 3.12 · FastAPI · SQLite · bm25s · BAAI/bge-m3 · sentence-transformers · PyTorch · OpenAI API · Next.js 16 · React 19 · TypeScript · Tailwind CSS 4
-
-The API runs on Google Cloud Run and the site on Vercel.
 
 ## Getting started
 
@@ -121,15 +110,3 @@ eval/      DharaBench questions and results
 tests/     pytest suite
 docs/      architecture, evaluation, setup
 ```
-
-## Limits
-
-- **Supreme Court judgments only,** by design, and a snapshot to 7 September 2026.
-- **Citations are checked, meaning is not.** Whether a sentence says what its passage says still needs a reader.
-- **The benchmark counts one right judgment per question,** the one the question was written from, so recall understates how often a useful judgment is found.
-
-## Data and licence
-
-**Dataset:** the statutes, the official mapping, the citation graph and DharaBench are published on [Hugging Face](https://huggingface.co/datasets/AravArun/dhara-indian-criminal-law) and [Kaggle](https://www.kaggle.com/datasets/aravarun/dhara-indian-criminal-law).
-
-Statutes and the NCRB tables are not protected by copyright in India. Judgments come from the Indian Supreme Court Judgments dataset (Dattam Labs, AWS Open Data, CC-BY-4.0). The site's engravings are public-domain prints from the Rijksmuseum. Code: MIT © Arav Arun.
