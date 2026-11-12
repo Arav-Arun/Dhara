@@ -1,6 +1,7 @@
 {
-  "threshold": 0.00025074914447031915,
-  "in_scope_answered": 0.953,
-  "out_of_scope_declined": 0.5,
-  "n": 275
+  "threshold": 0.03449452668428421,
+  "in_scope_answered": 0.951,
+  "out_of_scope_declined": 0.45,
+  "n": 575,
+  "top": 20
 }

@@ -1,16 +1,18 @@
 | Config | Precedent R@10 | Precedent MRR | Same, no section numbers R@10 | Reverse R@10 | Statute nDCG@10 | Statute R@10 | p50 s |
 |---|---|---|---|---|---|---|---|
-| keyword search, query as typed | 0.387 | 0.199 | 0.48 | 0.6 | 0.701 | 0.91 | 0.003 |
-| dense only, query as typed (plain RAG, as in prior IPC/BNS repos) | 0.373 | 0.217 | 0.407 | 0.6 | 0.763 | 0.98 | 0.142 |
-| keyword search, section numbers set aside | 0.48 | 0.262 | 0.48 | 0.8 | 0.701 | 0.91 | 0.004 |
-| + citation graph | 0.513 | 0.291 | 0.48 | 0.8 | 0.701 | 0.91 | 0.004 |
-| + bge-m3 dense and sparse, fused by RRF | 0.44 | 0.23 | 0.533 | 0.8 | 0.795 | 0.96 | 0.167 |
-| + multi-vector rescoring | 0.327 | 0.148 | 0.527 | 0.8 | 0.83 | 0.97 | 8.04 |
-| + cross-encoder (bge-reranker-base) | 0.453 | 0.264 | 0.507 | 0.8 | 0.791 | 0.97 | 3.651 |
-| + cross-encoder (bge-reranker-v2-m3) | 0.553 | 0.357 | 0.54 | 0.6 | 0.859 | 0.98 | 12.547 |
-| + LLM reranker (gpt-6-luna) | 0.453 | 0.337 | 0.547 | 0.8 | 0.938 | 0.97 | 9.877 |
-| + fine-tuned cross-encoder, first version | 0.427 | 0.224 | 0.507 | 0.8 | 0.793 | 0.98 | 6.345 |
-| + fusion with the citation graph weighted x2 | 0.467 | 0.249 | 0.533 | 0.8 | 0.795 | 0.96 | 0.24 |
-| + fine-tuned cross-encoder over the weighted fusion, first version | 0.427 | 0.228 | 0.507 | 0.8 | 0.793 | 0.98 | 6.345 |
-| + fine-tuned cross-encoder, retrained (live) | 0.487 | 0.223 | 0.48 | 0.6 | 0.769 | 0.98 | 5.461 |
-| + fine-tuned cross-encoder, retrained, over the weighted fusion | 0.427 | 0.195 | 0.48 | 0.4 | 0.769 | 0.98 | 6.079 |
+| keyword search, query as typed | 0.309 | 0.157 | 0.389 | 0.6 | 0.699 | 0.91 | 0.006 |
+| dense only, query as typed (plain RAG, as in prior IPC/BNS repos) | 0.344 | 0.197 | 0.358 | 0.6 | 0.763 | 0.98 | 0.286 |
+| keyword search, section numbers set aside | 0.389 | 0.213 | 0.389 | 0.8 | 0.699 | 0.91 | 0.006 |
+| + citation graph | 0.402 | 0.229 | 0.389 | 0.8 | 0.699 | 0.91 | 0.006 |
+| + bge-m3 dense and sparse, fused by RRF | 0.371 | 0.191 | 0.438 | 0.8 | 0.792 | 0.96 | 0.302 |
+| + multi-vector rescoring | 0.267 | 0.138 | 0.444 | 0.8 | 0.83 | 0.97 | 1.413 |
+| + cross-encoder (bge-reranker-base) | 0.407 | 0.237 | 0.442 | 0.8 | 0.789 | 0.97 | 1.964 |
+| + cross-encoder (bge-reranker-v2-m3) | 0.467 | 0.286 | 0.48 | 0.6 | 0.857 | 0.98 | 4.623 |
+| + LLM reranker (gpt-6-luna) | 0.398 | 0.292 | 0.478 | 0.8 | 0.943 | 0.97 | 12.633 |
+| + fine-tuned bge-reranker-base, earlier training set (live until now) | 0.418 | 0.186 | 0.444 | 0.6 | 0.769 | 0.98 | 4.182 |
+| + fine-tuned bge-reranker-base | 0.378 | 0.169 | 0.429 | 0.8 | 0.763 | 0.97 | 1.762 |
+| + fine-tuned bge-reranker-v2-m3 | 0.38 | 0.199 | 0.464 | 0.6 | 0.782 | 0.97 | 4.83 |
+| + MiniLM distilled from the fine-tuned v2-m3 | 0.404 | 0.183 | 0.413 | 0.6 | 0.826 | 0.97 | 0.582 |
+| + fusion with the citation graph weighted x2 | 0.373 | 0.198 | 0.438 | 0.8 | 0.792 | 0.96 | 0.344 |
+| + fine-tuned bge-reranker-base over the weighted fusion | 0.349 | 0.143 | 0.429 | 0.6 | 0.763 | 0.97 | 1.721 |
+| + questions without a section number put into legal terms first | 0.378 | 0.165 | 0.382 | 0.8 | 0.777 | 1.0 | 1.812 |

@@ -1,6 +1,5 @@
 import { optional } from "@/lib/data";
 import { Heading } from "@/components/ui";
-import Landscape from "@/components/Landscape";
 
 type Meta =
     {
@@ -69,10 +68,6 @@ export default async function Method()
                 </div>
             </Section>
 
-            <Section title="Compared with what exists" sub="Government portals hold the text and the tables. Court search holds the judgments. Chatbots answer but don’t check. Dhara joins all three and checks every citation.">
-                <div className="mx-auto max-w-5xl"><Landscape /></div>
-            </Section>
-
             <Section title="How a question is answered" sub="One question, followed through every step.">
                 <ol className="relative mx-auto max-w-4xl">
                     <Step n={1} title="Your question">
@@ -105,8 +100,8 @@ export default async function Method()
                         <FanIn />
                     </Step>
                     <Step n={4} title="Merge and re-rank"
-                        text="The four lists are merged by rank. A cross-encoder fine-tuned on Indian criminal judgments then re-reads the top 50 judgment passages next to your question and puts them in order; on held-out questions it finds the right judgment in the top 10 more often than any search alone. The same model checks that the question is about criminal law at all. The best 8 sections and 12 judgments go forward.">
-                        <Tags items={["Reciprocal rank fusion", "Fine-tuned cross-encoder", "Out-of-scope check"]} />
+                        text="The four lists are merged by rank. A small cross-encoder then re-reads the top 50 judgment passages next to your question and puts them in order. It is a MiniLM distilled from bge-reranker-v2-m3 fine-tuned on Indian criminal judgments: a twenty-fifth of the size, so it reranks in under a second without a GPU. On held-out questions it puts the right judgment in the top 10 for 45%, against 36% for the merged lists it starts from. The same model checks that the question is about criminal law at all. The best 8 sections and 12 judgments go forward.">
+                        <Tags items={["Reciprocal rank fusion", "Distilled cross-encoder", "Out-of-scope check"]} />
                     </Step>
                     <Step n={5} title="A second look"
                         text="If something is missing, such as the procedural provision that goes with an offence, Dhara runs up to two more searches. Here it would look for the High Court’s inherent powers, BNSS 528, once CrPC 482. Each extra search is shown to you." />
@@ -237,7 +232,16 @@ function Tags({ items }: { items: string[] })
     );
 }
 
-// Each setup adds one piece to the one above it, so the bars read as the gain from that piece.
+// The setup the live site runs, and the few others the bars compare it with; the table has every row.
+const LIVE = "+ MiniLM distilled from the fine-tuned v2-m3";
+const KEY = [
+    "keyword search, query as typed",
+    "dense only, query as typed (plain RAG, as in prior IPC/BNS repos)",
+    "+ citation graph",
+    "+ LLM reranker (gpt-6-luna)",
+    LIVE,
+];
+
 function Scores({ results }: { results: Results })
 {
     const rows = Object.entries(results).map(([name, r]) =>
@@ -246,19 +250,19 @@ function Scores({ results }: { results: Results })
             precedent: (r.precedent as Record<string, number>)?.["recall@10"] ?? 0,
             statute: (r.statute as Record<string, number>)?.["ndcg@10"],
         }));
-    const best = Math.max(...rows.map((r) => r.precedent));
+    const bars = KEY.flatMap((k) => rows.filter((r) => r.name === k));
     return (
         <Section title="How well it works"
-            sub="Measured on questions whose right answers we know, kept apart from everything the system was built or trained on. The bars show how often the right judgment is in the top ten.">
+            sub="Measured on held-out questions whose right answers we know, kept apart from everything the system was built or trained on. The bars show how often the right judgment is in the top ten.">
             <div className="mx-auto max-w-4xl rounded-[18px] bg-sheet p-6 ring-1 ring-rule sm:p-8">
                 <ul className="space-y-3">
-                    {rows.map((r) => (
+                    {bars.map((r) => (
                         <li key={r.name} className="grid items-center gap-x-4 gap-y-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]"
                             title={`${r.name}: ${pct(r.precedent)} judgments, ${pct(r.statute)} sections`}>
-                            <span className="text-[14px] text-ink/85">{r.name}</span>
+                            <span className="text-[14px] text-ink/85">{r.name}{r.name === LIVE && <span className="text-stamp"> · live</span>}</span>
                             <div className="flex items-center gap-3">
                                 <div className="h-2.5 flex-1 rounded-full bg-paper">
-                                    <div className={`h-full rounded-full ${r.precedent === best ? "bg-stamp" : "bg-periwinkle"}`} style={{ width: `${r.precedent * 100}%` }} />
+                                    <div className={`h-full rounded-full ${r.name === LIVE ? "bg-stamp" : "bg-periwinkle"}`} style={{ width: `${r.precedent * 100}%` }} />
                                 </div>
                                 <span className="figures w-10 text-right text-[14px]">{pct(r.precedent)}</span>
                             </div>
@@ -266,12 +270,12 @@ function Scores({ results }: { results: Results })
                     ))}
                 </ul>
                 <details className="mt-6 text-sm">
-                    <summary className="cursor-pointer text-graphite">Show as a table, with section ranking</summary>
+                    <summary className="cursor-pointer text-graphite">Every setup measured, with section ranking</summary>
                     <table className="figures mt-4 w-full text-left">
                         <thead className="text-graphite"><tr className="border-b border-rule"><th className="py-2 font-normal">Search setup</th><th className="font-normal">Right judgment in the top 10</th><th className="font-normal">Right section ranked first or near it</th></tr></thead>
                         <tbody>
                             {rows.map((r) => (
-                                <tr key={r.name} className="border-b border-rule"><td className="py-2">{r.name}</td><td>{pct(r.precedent)}</td><td>{pct(r.statute)}</td></tr>
+                                <tr key={r.name} className="border-b border-rule"><td className="py-2">{r.name}{r.name === LIVE && <span className="text-stamp"> · live</span>}</td><td>{pct(r.precedent)}</td><td>{pct(r.statute)}</td></tr>
                             ))}
                         </tbody>
                     </table>
