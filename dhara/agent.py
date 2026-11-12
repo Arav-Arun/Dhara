@@ -12,13 +12,11 @@ bounded and makes the behaviour easy to show in the UI and to ablate.
 import re
 import time
 from collections.abc import Callable
-from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field, replace
 from datetime import date
 from typing import Any
 
 from dhara import generate, llm, rerank, verify
-from dhara.citations import extract
 from dhara.retrieve import LIVE_WEIGHTS, Hit, Index, Query
 
 FOLLOWUP_SYS = (
@@ -55,32 +53,9 @@ REWRITE_SCHEMA = {
     "required": ["question"],
     "additionalProperties": False,
 }
-TERMS_SYS = (
-    "You turn a plain-language question about Indian criminal law into search terms a lawyer would use: the "
-    "offences, procedures and doctrines it is about, and the sections, giving both the old number (IPC, CrPC, "
-    "Evidence Act) and the new one (BNS, BNSS, BSA) where you are sure of them. At most 30 words, no sentences."
-)
-TERMS_SCHEMA = {
-    "type": "object",
-    "properties": {"terms": {"type": "string"}},
-    "required": ["terms"],
-    "additionalProperties": False,
-}
 LOOKUP = re.compile(
     r"^\s*(?:what\s+is\s+)?(?:section\s+)?(?:BNS|BNSS|BSA|IPC|CrPC|Cr\.P\.C\.?|IEA)\s*\d{1,3}[A-Z]{0,3}\s*\??\s*$", re.I
 )
-
-
-def legal_terms(question: str) -> str:
-    """Search terms for a question that names no section, or "" if it already names one: lay
-    wording ("killed in a sudden fight") misses judgments written in the law's own words."""
-    if extract(question, query=True):
-        return ""
-    out = llm.json_call(TERMS_SYS, question, TERMS_SCHEMA, "agent:terms", max_tokens=600)
-    return str(out.get("terms", "")).strip()
-
-
-POOL = ThreadPoolExecutor(4)
 
 
 @dataclass
@@ -105,7 +80,6 @@ class Pipeline:
     top_judgments: int = 12
     abstain_below: float | None = None  # cross-encoder score, from evaluate.calibrate_abstention
     gate_top: int = 20  # how many statutes the gate scores, as calibrated
-    terms: bool = False  # add legal search terms to questions that name no section (legal_terms)
 
     def first_pass(
         self,
@@ -115,25 +89,22 @@ class Pipeline:
         trace: Trace,
         skip: set[int] | None = None,
         top: int = 50,
-        terms: str = "",
     ) -> list[Hit]:
-        """`skip`: passages already in hand, left out before reranking; `top`: how many to rerank;
-        `terms`: added to what is searched for, while the reranker still reads the question as asked."""
+        """`skip`: passages already in hand, left out before reranking; `top`: how many to rerank."""
         t = time.perf_counter()
         q = Query(text, as_of=as_of, kind=kind)
-        searched = Query(f"{text}\n{terms}", as_of=as_of, kind=kind) if terms else q
         reranked = self.reranker is not None and kind == "judgment"
         # as measured (evaluate.configs): the reranker helps over the even fusion and hurts over the
         # weighted one, and it doesn't help statutes, which keep the weighted order
-        hits = self.ix.search(searched, k=100, weights=None if reranked else LIVE_WEIGHTS)
+        hits = self.ix.search(q, k=100, weights=None if reranked else LIVE_WEIGHTS)
         if skip:
             hits = [h for h in hits if h.ord not in skip]
         trace.add(
             f"retrieve:{kind}",
             t,
-            query=searched.text,
-            refs=searched.refs,
-            counterparts=searched.counterparts,
+            query=text,
+            refs=q.refs,
+            counterparts=q.counterparts,
             top=[{"unit": self.ix.ids[h.ord], "rrf": round(h.score, 4), "by": h.by} for h in hits[:10]],
         )
         if reranked and self.reranker:
@@ -161,8 +132,6 @@ class Pipeline:
         t = time.perf_counter()
         route = "lookup" if LOOKUP.match(question) else "research"
         trace.add("route", t, route=route)
-        # written while the statutes are searched and the scope is checked, so it costs little time
-        terms = POOL.submit(legal_terms, question) if self.terms and route == "research" else None
         statutes = self.first_pass(question, "statute", as_of, trace)
         if route == "lookup":
             return {
@@ -188,11 +157,7 @@ class Pipeline:
                 "follow_ups": [],
                 "trace": trace.events,
             }
-        t = time.perf_counter()
-        extra = terms.result() if terms else ""
-        if extra:
-            trace.add("terms", t, terms=extra)
-        judgments = self.first_pass(question, "judgment", as_of, trace, terms=extra)
+        judgments = self.first_pass(question, "judgment", as_of, trace)
         statutes, judgments = self._follow_up(question, statutes, judgments, as_of, trace)
 
         t = time.perf_counter()

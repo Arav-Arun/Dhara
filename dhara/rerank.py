@@ -3,8 +3,7 @@
 - multivector: bge-m3's ColBERT-style token vectors, computed on the fly for the fused top-N
   (late interaction: every query token finds its best-matching passage token)
 - cross_encoder: a cross-encoder reads query and passage together; off-the-shelf or our
-  fine-tuned model (train_reranker.py). A name ending in "#int8" loads it on the CPU with 8-bit
-  weights, as the API serves it
+  fine-tuned or distilled model (train_reranker.py)
 - llm: gpt-6-luna orders the top-N in one call, the baseline the small model has to beat on
   quality per rupee and per millisecond
 """
@@ -69,16 +68,7 @@ def cross_encoder(ix: Index, q: Query, hits: list[Hit], model_name: str, top: in
 
     with MODEL_LOCK:
         if model_name not in _cross:
-            name, _, mode = model_name.partition("#")
-            model = CrossEncoder(name, max_length=512, device="cpu" if mode else _device())
-            if mode == "int8":  # dynamic quantization: weights stored in 8 bits, activations quantized per batch
-                import torch
-
-                torch.backends.quantized.engine = (
-                    "fbgemm" if "fbgemm" in torch.backends.quantized.supported_engines else "qnnpack"
-                )
-                model = torch.ao.quantization.quantize_dynamic(model, {torch.nn.Linear}, dtype=torch.qint8)
-            _cross[model_name] = model
+            _cross[model_name] = CrossEncoder(model_name, max_length=512, device=_device())
     # a (question, passage) pair is scored once: ablation rows and repeat questions share most pairs
     if len(_scored) > 500_000:
         _scored.clear()

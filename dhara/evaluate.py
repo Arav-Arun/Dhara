@@ -11,15 +11,13 @@ import math
 import time
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import replace
 from typing import Any
 
 from dhara import bench
-from dhara.config import ROOT, settings
+from dhara.config import ROOT
 from dhara.retrieve import LIVE_WEIGHTS, Hit, Index, Query, strip_refs
 
 RESULTS = ROOT / "eval" / "results"
-TERMS = settings.processed_dir / "legal_terms.json"  # written by write_terms, so a GPU machine needs no API key
 Ranker = Callable[[Index, Query], list[Hit]]
 
 
@@ -115,7 +113,6 @@ def configs(models: dict[str, str] | None = None) -> dict[str, Ranker]:
     """The ablation rows, cheapest first. Each adds one thing to the row above it. `models` holds
     the fine-tuned rerankers that exist (train_reranker.MODELS): "base", "large", "mini"."""
     from dhara import rerank
-    from dhara.agent import legal_terms
 
     def first(use: tuple[str, ...], raw: bool = False) -> Ranker:
         return lambda ix, q: ix.search(q, use=use, expand_codes=not raw, raw=raw)
@@ -152,35 +149,7 @@ def configs(models: dict[str, str] | None = None) -> dict[str, Ranker]:
         weighted = lambda ix, q: ix.search(q, use=("bm25", "cited", "dense", "sparse"), weights={"cited": 2.0})  # noqa: E731
         rows["+ fusion with the citation graph weighted x2"] = weighted
         rows["+ fine-tuned bge-reranker-base over the weighted fusion"] = reranked(weighted, models["base"])
-    for key in ("base", "large", "mini"):
-        if f"{key}#int8" in models:
-            rows[f"+ the {key} model with 8-bit weights, on the CPU"] = reranked(fused, models[f"{key}#int8"])
-    if "live" in models:
-        live = models["live"]
-
-        known = json.loads(TERMS.read_text()) if TERMS.exists() else {}
-
-        def with_terms(ix: Index, q: Query) -> list[Hit]:
-            terms = known[q.text] if q.text in known else legal_terms(q.text)
-            searched = replace(q, text=f"{q.text}\n{terms}") if terms else q
-            return rerank.cross_encoder(ix, q, ix.search(searched), live)
-
-        rows["+ questions without a section number put into legal terms first"] = with_terms
     return rows
-
-
-def write_terms(split: str) -> int:
-    """The legal search terms for every question in `split`, as the "legal terms" row would ask for them."""
-    from dhara.agent import legal_terms
-
-    known = json.loads(TERMS.read_text()) if TERMS.exists() else {}
-    items = bench.load(split)
-    queries = {str(x["query"]) for x in items} | {strip_refs(x["query"]) for x in items if x["type"] == "precedent"}
-    todo = sorted(q for q in queries if q not in known)
-    with ThreadPoolExecutor(8) as pool:
-        known |= dict(zip(todo, pool.map(legal_terms, todo), strict=True))
-    TERMS.write_text(json.dumps(known, indent=1, ensure_ascii=False))
-    return len(known)
 
 
 def ablate(split: str = "dev", only: list[str] | None = None, models: dict[str, str] | None = None) -> str:

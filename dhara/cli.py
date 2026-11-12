@@ -204,26 +204,15 @@ def train(model: str = "base", teacher: str = "large") -> None:
 def evaluate(split: str = "dev", only: str = "") -> None:
     """Run the ablation table on DharaBench; --only filters rows by name."""
     from dhara.evaluate import ablate
-    from dhara.train_reranker import MODELS, OUT_DIR
+    from dhara.train_reranker import MODELS
 
     # a folder exists from the first checkpoint, so look for the finished model's config
     models = {k: str(p) for k, p in MODELS.items() if (p / "config.json").exists()}
-    models |= {f"{k}#int8": f"{p}#int8" for k, p in list(models.items())}
-    if (OUT_DIR / "config.json").exists():
-        models["live"] = str(OUT_DIR)
     typer.echo(ablate(split, [o for o in only.split(",") if o] or None, models=models))
 
 
 @app.command()
-def terms(split: str = "dev") -> None:
-    """Write the legal search terms for a split's questions ahead of an evaluation run."""
-    from dhara.evaluate import write_terms
-
-    typer.echo(f"terms {write_terms(split)}")
-
-
-@app.command()
-def calibrate(split: str = "dev", top: int = 20, int8: bool = False) -> None:
+def calibrate(split: str = "dev", top: int = 20) -> None:
     """Fit the abstention threshold with the fine-tuned reranker; the API reads it at start-up."""
     import json
 
@@ -231,7 +220,7 @@ def calibrate(split: str = "dev", top: int = 20, int8: bool = False) -> None:
     from dhara.retrieve import Index
     from dhara.train_reranker import OUT_DIR
 
-    out = calibrate_abstention(Index(), str(OUT_DIR) + ("#int8" if int8 else ""), split, top=top)
+    out = calibrate_abstention(Index(), str(OUT_DIR), split, top=top)
     (RESULTS / "abstention.json").write_text(json.dumps(out, indent=2))
     typer.echo(out)
 
