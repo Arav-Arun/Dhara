@@ -8,7 +8,7 @@ export function ToolBody({ t }: { t: Tool })
 {
     return (
         <>
-            <Folder src={`/art/cover-${t.cover}.webp`} className="w-[56%] max-w-[230px] xl:w-[40%]" />
+            <Folder src={`/art/cover-${t.cover}.webp`} className="w-[56%] max-w-[200px]" />
             <div className="flex flex-1 flex-col">
                 <h3 className="text-[24px] leading-tight font-medium tracking-[-0.03em]">{t.name}</h3>
                 <ul className="mt-3 space-y-1.5 text-[14px] text-ink/85">
@@ -26,8 +26,7 @@ export function ToolBody({ t }: { t: Tool })
 
 export function cardClass(t: Tool): string
 {
-    // cover above the text until the card is wide enough to set them side by side
-    return `group flex flex-col gap-6 rounded-[18px] p-6 text-left xl:flex-row xl:items-center xl:gap-8 ${t.card}`;
+    return `group flex flex-col gap-6 rounded-[18px] p-6 text-left ${t.card}`;
 }
 
 // A file folder: printed front cover, two tabs peeking out on the right.

@@ -13,8 +13,6 @@ const TOOLS: Page[] = [
         points: ["Ask about any offence, procedure or rule of evidence", "Finds precedent under old and new section numbers", "Every statement cites its source", "Follow-up questions keep the context"] },
     { to: "/judgments", name: "Judgments in today’s numbers", cover: "judgments", card: "bg-[#f6e7b0]", stat: "1,59,686 section references linked", cta: "Open",
         points: ["Search by section, case name or citation", "A BNS search finds the IPC-era judgments", "Every old section in the text shows its new number"] },
-    { to: "/check", name: "Check a draft", cover: "check", card: "bg-[#f3d3cc]", stat: "Every citation checked", cta: "Open",
-        points: ["Paste a draft, FIR or chargesheet", "Catches repealed and wrong-code sections", "Suggests the right section for the offence date"] },
 ];
 
 export default function Home()
@@ -55,7 +53,7 @@ export default function Home()
                     <h2 className="text-[34px] tracking-[-0.035em]">Everything a criminal practice needs during the switch</h2>
                     <p className="mt-2 text-graphite">Research is the core. The others answer the questions that come up every day since 1 July 2024.</p>
                 </div>
-                <div className="mt-10 grid gap-5 md:grid-cols-2">
+                <div className="mt-10 grid gap-5 md:grid-cols-3">
                     {TOOLS.map((t) => <Link key={t.to} href={t.to} className={cardClass(t)}><ToolBody t={t} /></Link>)}
                     <FindCard />
                 </div>

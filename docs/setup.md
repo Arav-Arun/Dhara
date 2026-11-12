@@ -7,7 +7,7 @@
 - Python 3.12 and [uv](https://docs.astral.sh/uv/)
 - Node.js 20 or later
 - About 10 GB of disk for the sources, the database and the index (the judgment PDFs can be deleted once processed)
-- An OpenAI API key; search, section pages and draft checking work without one
+- An OpenAI API key; search and section pages work without one
 
 ## Install
 

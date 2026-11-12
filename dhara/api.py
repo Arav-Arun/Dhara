@@ -3,7 +3,6 @@
 GET  /v1/search?q=             command-palette typeahead
 GET  /v1/provisions/{act}/{n}  provision page: text, parts, status, classification, counterparts, precedent
 GET  /v1/compare/{act}/{n}     both sides of the mapping, for the section page's word diff
-POST /v1/check                 flag wrong-code, missing or renumbered citations in a draft
 POST /v1/research              the full pipeline, streamed as server-sent events (trace, then answer)
 GET  /v1/judgments?q=          judgments by section (either numbering), name, citation or topic; filtered, paged
 GET  /v1/judgments/{id}        one judgment, each section reference in it annotated with its counterpart
@@ -29,7 +28,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
 
-from dhara import checker, db, library, llm
+from dhara import db, library, llm
 from dhara.agent import Pipeline, Trace
 from dhara.citations import extract
 from dhara.config import INDIA_CODE_PDF, sc_pdf_url, settings
@@ -167,14 +166,7 @@ def provision(act: str, number: str) -> dict[str, Any]:
             (pid,),
         )
     ]
-    out["classification"] = [
-        dict(r)
-        for r in c.execute(
-            "SELECT sub, offence, punishment, cognizable, bailable, triable_by FROM offence_classification "
-            "WHERE provision_id=?",
-            (pid,),
-        )
-    ]
+    out["classification"] = classification(pid)
     out["official"] = official(pid)
     out["counterparts"] = counterparts(pid)
     out["precedent"] = precedent([pid] + [x["id"] for x in out["counterparts"] if x["id"]])
@@ -249,17 +241,6 @@ def compare(act: str, number: str) -> dict[str, Any]:
     return {"id": pid, "counterparts": counterparts(pid), "texts": texts}
 
 
-class Draft(BaseModel):
-    text: str = Field(max_length=50_000)
-    offence_date: date | None = None
-    proceeding_date: date | None = None  # FIR or complaint; procedure and evidence turn on this
-
-
-@app.post("/v1/check")
-def check(body: Draft) -> list[dict[str, Any]]:
-    return checker.check(con(), body.text, body.offence_date, body.proceeding_date)
-
-
 class Turn(BaseModel):
     q: str = Field(max_length=2000)
     a: str = Field(max_length=4000)
@@ -319,6 +300,18 @@ def official(pid: str) -> str:
     return url or (f"{INDIA_CODE_PDF[act]}#page={page}" if act in INDIA_CODE_PDF and page else "")
 
 
+def classification(pid: str) -> list[dict[str, Any]]:
+    """The BNSS First Schedule rows for a BNS section: cognizable or not, bailable or not, and the trial court."""
+    return [
+        dict(r)
+        for r in con().execute(
+            "SELECT sub, offence, punishment, cognizable, bailable, triable_by FROM offence_classification "
+            "WHERE provision_id=?",
+            (pid,),
+        )
+    ]
+
+
 def original(jid: str) -> str:
     """The judgment's PDF as the Supreme Court published it (via the open dataset's bucket)."""
     row = con().execute("SELECT decided_on, source_path FROM judgments WHERE id=?", (jid,)).fetchone()
@@ -338,7 +331,7 @@ def describe(passage: dict[str, Any]) -> dict[str, Any]:
             "status": status,
             "counterparts": others,
             "official": official(passage["ref"]),
-            "classified": checker.classification(c, passage["ref"]),
+            "classified": classification(passage["ref"])[:4],
         }
     title, decided, citation, court = c.execute(
         "SELECT title, decided_on, citation, court FROM judgments WHERE id=?", (passage["ref"],)

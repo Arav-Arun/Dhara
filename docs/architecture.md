@@ -58,7 +58,6 @@ flowchart TD
 | Context budget and structured answer | `dhara/generate.py` |
 | Verifier | `dhara/verify.py` |
 | Judgment search, briefs, questions about a judgment | `dhara/library.py` |
-| Draft checking and date rules | `dhara/checker.py`, `dhara/rules.py` |
 
 ## Design choices
 
@@ -112,6 +111,6 @@ erDiagram
 | `index.py`, `retrieve.py` | retrieval units, BM25 and bge-m3 vectors; four retrievers and rank fusion |
 | `rerank.py`, `train_reranker.py` | cross-encoder, multi-vector and LLM rerankers; fine-tuning on mined pairs, and distillation |
 | `generate.py`, `verify.py`, `agent.py` | context budget, structured answers, the verifier, the research pipeline |
-| `library.py`, `checker.py`, `rules.py` | judgment search and briefs, draft checking, which code applies |
+| `library.py` | judgment search, briefs and questions about a judgment |
 | `bench.py`, `evaluate.py`, `release.py` | DharaBench, the ablation runner, the dataset export |
 | `api.py`, `cli.py`, `config.py`, `db.py`, `llm.py`, `models.py` | the API, the command line, settings, storage, the one place that calls the model |

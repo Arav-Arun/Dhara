@@ -21,7 +21,7 @@ export function openFinder()
 }
 
 const TRY: [string, string][] = [["IPC 302", "murder, under the old code"], ["BNSS 528", "the High Court’s inherent powers"], ["438 CrPC", "anticipatory bail"], ["Evidence Act 65B", "electronic records"]];
-const PAGES: [string, string, string][] = [["/research", "Research", "Ask a question in your own words"], ["/judgments", "Judgments", "Search Supreme Court judgments"], ["/check", "Check a draft", "Find outdated citations in a draft"]];
+const PAGES: [string, string, string][] = [["/research", "Research", "Ask a question in your own words"], ["/judgments", "Judgments", "Search Supreme Court judgments"]];
 
 const BUTTON = "flex items-center gap-4 rounded-[4px] border border-rule bg-sheet px-3 py-1.5 text-sm text-graphite hover:border-ink hover:text-ink";
 

@@ -2,7 +2,7 @@ from datetime import date
 
 import pytest
 
-from dhara import db, rules
+from dhara import db
 from dhara.agent import LOOKUP
 from dhara.retrieve import rrf
 from dhara.verify import check
@@ -12,18 +12,6 @@ def test_rrf_rewards_agreement() -> None:
     fused = rrf({"bm25": [1, 2, 3], "dense": [2, 3, 1], "sparse": [2, 1]}, k=3)
     assert [h.ord for h in fused] == [2, 1, 3]
     assert fused[0].by == {"bm25": 2, "dense": 1, "sparse": 1}
-
-
-@pytest.mark.parametrize(
-    ("offence", "started", "expected"),
-    [
-        (date(2024, 6, 20), date(2024, 6, 25), {"substantive": "IPC", "procedure": "CRPC", "evidence": "IEA"}),
-        (date(2024, 6, 20), date(2024, 7, 5), {"substantive": "IPC", "procedure": "contested", "evidence": "BSA"}),
-        (date(2024, 8, 1), None, {"substantive": "BNS", "procedure": "BNSS", "evidence": "BSA"}),
-    ],
-)
-def test_applicability(offence: date, started: date | None, expected: dict[str, str]) -> None:
-    assert {r.area: r.code for r in rules.applicable(offence, started)} == expected
 
 
 @pytest.mark.parametrize("q", ["BNS 103", "what is IPC 420?", "Section CrPC 438", "bnss 528"])
