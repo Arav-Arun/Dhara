@@ -40,7 +40,7 @@ flowchart TD
     W --> E[read section numbers, add their old/new counterparts from the official tables]
     E --> S[statutes and judgments searched as separate pools]
     S --> R[BM25 ∥ citation graph ∥ bge-m3 dense ∥ bge-m3 sparse, fused by rank]
-    R --> X[fine-tuned cross-encoder reranks the top 50 judgment passages]
+    R --> X[distilled MiniLM cross-encoder reranks the top 50 judgment passages]
     X --> CE[same model, on the top statutes: is this a criminal-law question?]
     CE -->|no| D[decline]
     CE -->|yes| F[up to 2 follow-up searches, if the model asks for them]
@@ -54,7 +54,7 @@ flowchart TD
 |---|---|
 | Rewrite, follow-up searches, trace | `dhara/agent.py` |
 | Counterparts, retrievers, rank fusion | `dhara/retrieve.py` |
-| Reranking, scope check, fine-tuning | `dhara/rerank.py`, `dhara/train_reranker.py` |
+| Reranking, scope check, fine-tuning and distillation | `dhara/rerank.py`, `dhara/train_reranker.py` |
 | Context budget and structured answer | `dhara/generate.py` |
 | Verifier | `dhara/verify.py` |
 | Judgment search, briefs, questions about a judgment | `dhara/library.py` |
@@ -63,12 +63,12 @@ flowchart TD
 ## Design choices
 
 - **Section numbers go to the citation graph, not to keyword search.** A question about BNS 103 is mapped to IPC 302, and one retriever searches only the judgment passages that cite either. In keyword search the same numbers hurt, because judgments mostly use the old ones: "103" matches the wrong documents.
-- **The citation graph counts twice when nothing reranks.** With four retrievers weighted equally, dense and sparse search dilute it. The weight was fixed before measuring and helps on both evaluation splits. The reranker, though, does better from the even fusion, so with it the judgments are reranked from there.
+- **The citation graph counts twice when nothing reranks.** With four retrievers weighted equally, dense and sparse search dilute it. The weight was fixed before measuring. The reranker does better from the even fusion, so judgments are reranked from there and statutes keep the weighted order.
 - **The mapping is data, not a model's guess.** Old-to-new links come from NCRB's official tables, with their relation type (renumbered, merged, split, partly moved, new, dropped). Courts' own "corresponding to" phrases are an independent check (94% agreement).
 - **One section, one chunk.** Statutes are retrieved whole, split only at subsection boundaries, so a proviso never loses the clause it qualifies. Judgments are chunked by numbered paragraph, so an answer can point at "paras 12–14".
 - **The verifier is code.** It drops any statement that cites a passage it wasn't given, names a section that doesn't exist, or presents a repealed section as current law. If more than half the statements fail, Dhara declines to answer.
 - **A bounded agent.** After the first search the model may ask for at most two more, through the same retriever, and every call is in the trace. There is no framework and no open-ended loop, so cost and latency stay predictable.
-- **The reranker is trained on the corpus, and its training data was the fix.** bge-reranker-base is fine-tuned on pairs mined from training-split judgments. The first version lost to the fusion because its negatives included passages citing the same law as the question, which are often right answers too. Without them it beats the fusion and an LLM reranker on both splits (see [evaluation](evaluation.md)). One model does two jobs: it reranks judgments, and its top statute score decides whether a question is in scope.
+- **The reranker is small because the benchmark said size wasn't buying accuracy.** Rerankers fine-tuned on pairs mined from training-split judgments looked better on a 150-question benchmark; on 450 questions they no longer beat off-the-shelf models. The served model is a MiniLM cross-encoder distilled from a fine-tuned bge-reranker-v2-m3: as accurate as the base-sized models, five times faster, and fast enough for a CPU-only server (see [evaluation](evaluation.md)). One model does two jobs: it reranks judgments, and its top statute score decides whether a question is in scope.
 - **Which code applies is a rule.** The offence date decides substantive law; the date proceedings began decides procedure and evidence (BNSS s.531, BSA s.170).
 - **Sexual-offence judgments are included.** The official reports anonymise victims, and leaving out 780 judgments left a gap in an area lawyers search often. They carry a `sensitive` flag, so a deployment can filter them.
 
@@ -110,7 +110,7 @@ erDiagram
 | `mapping_tables.py`, `mapping.py` | NCRB's correspondence tables, compared with public mapping datasets |
 | `judgments.py`, `citations.py` | Supreme Court judgments: select, download, chunk, extract section references |
 | `index.py`, `retrieve.py` | retrieval units, BM25 and bge-m3 vectors; four retrievers and rank fusion |
-| `rerank.py`, `train_reranker.py` | cross-encoder, multi-vector and LLM rerankers; fine-tuning on mined pairs |
+| `rerank.py`, `train_reranker.py` | cross-encoder, multi-vector and LLM rerankers; fine-tuning on mined pairs, and distillation |
 | `generate.py`, `verify.py`, `agent.py` | context budget, structured answers, the verifier, the research pipeline |
 | `library.py`, `checker.py`, `rules.py` | judgment search and briefs, draft checking, which code applies |
 | `bench.py`, `evaluate.py`, `release.py` | DharaBench, the ablation runner, the dataset export |

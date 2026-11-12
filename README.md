@@ -17,7 +17,7 @@ On 1 July 2024 the Bharatiya Nyaya Sanhita, Nagarik Suraksha Sanhita and Sakshya
 - **Judgments.** Search the library by section (old or new number), case name, report citation or topic. Each judgment opens with a brief in which every point cites its paragraph, answers questions from its own text, lists related judgments, and marks each old section in the text with today's number.
 - **Check a draft.** Paste an FIR, chargesheet or draft. Each citation is checked against the code in force on the offence date (and the FIR date for procedure) and corrected down to the subsection where the official tables allow, with the First Schedule classification of the offence.
 - **Section pages.** Any section, old or new, through ⌘K: full text, its counterpart, the changed words marked, the First Schedule row and the judgments on it, with a link to the official text.
-- **Hybrid retrieval with a citation graph.** BM25, a retriever over the passages that cite the named sections (or their counterparts), and bge-m3 dense and sparse search, fused by rank. A cross-encoder fine-tuned on pairs mined from the corpus reranks the judgments and decides whether a question is in scope.
+- **Hybrid retrieval with a citation graph.** BM25, a retriever over the passages that cite the named sections (or their counterparts), and bge-m3 dense and sparse search, fused by rank. A small cross-encoder, distilled from a larger one fine-tuned on the corpus, reranks the judgments in under a second without a GPU and decides whether a question is in scope.
 - **A verifier, not a promise.** Code, not a model, drops any statement that cites a passage it wasn't given, names a section that doesn't exist, or presents a repealed section as current law.
 - **Its own benchmark.** DharaBench measures every retrieval stage on questions whose answers are known, including new-code questions answered by judgments that cite only the old code.
 
@@ -52,7 +52,7 @@ flowchart LR
     Q[question] --> E[section numbers read<br>in both codes]
     E --> R[BM25 ∥ citation graph ∥<br>bge-m3 dense ∥ sparse]
     R --> F[fused by rank]
-    F --> X[fine-tuned cross-encoder<br>reranks judgments]
+    F --> X[distilled MiniLM<br>reranks judgments]
     X --> C{in scope?<br>same model}
     C -->|yes| G[structured answer,<br>every point cited]
     C -->|no| D[decline]
@@ -60,24 +60,24 @@ flowchart LR
     V --> A[research note<br>and trace]
 ```
 
-A question about BNS 103 is mapped to IPC 302 through NCRB's official tables, and one retriever searches only the judgment passages that cite either. That citation graph is fused with keyword and bge-m3 search, and a cross-encoder fine-tuned on pairs mined from the corpus reranks the judgments. Before any statement reaches the page, code checks that every citation points to a passage that was retrieved and to a section that exists and was in force.
+A question about BNS 103 is mapped to IPC 302 through NCRB's official tables, and one retriever searches only the judgment passages that cite either. That citation graph is fused with keyword and bge-m3 search, and a MiniLM cross-encoder distilled from a fine-tuned bge-reranker-v2-m3 reranks the judgments. Before any statement reaches the page, code checks that every citation points to a passage that was retrieved and to a section that exists and was in force.
 
 **More:** [architecture and design choices](docs/architecture.md)
 
 ## Results
 
-On the held-out test split (150 new-code questions whose answer is a judgment that cites only the old code):
+On the held-out test split (450 questions whose answer is a known Supreme Court judgment, many of them new-code questions answered by judgments that cite only the old code):
 
 | Setup | Right judgment in top 10 |
 |---|---|
-| Keyword search, question as typed | 0.27 |
+| Keyword search, question as typed | 0.28 |
 | Plain RAG (dense search only) | 0.31 |
-| + section numbers read through the citation graph | 0.37 |
-| Four retrievers, citation graph weighted ×2 | 0.38 |
-| LLM reranker over the four retrievers | 0.37 |
-| **Live: four retrievers + fine-tuned reranker** | **0.43** |
+| Keyword search + citation graph | 0.40 |
+| LLM reranker over the four retrievers | 0.40 |
+| Fine-tuned bge-reranker-base over the four retrievers | 0.42 |
+| **Live: four retrievers + distilled MiniLM reranker** | **0.45** |
 
-The reranker is bge-reranker-base fine-tuned on 1,596 question–passage pairs from training-split judgments. Its first version lost to the fusion, because its hard negatives included passages citing the same sections as the question, which are often right answers too. Retrained without them, it finds the right judgment more often on both splits (test 0.38 → 0.43, dev 0.47 → 0.49) and also decides whether a question is in scope.
+The benchmark was tripled from 150 to 450 precedent questions per split, and the larger sample changed the conclusion. Fine-tuning on pairs mined from the corpus no longer beats the off-the-shelf rerankers on dev: the earlier gain (0.43 on 150 test questions) was within the noise of the smaller set. The off-the-shelf bge-reranker-v2-m3 scores best on dev (0.47) but takes 13 seconds a search on a CPU. A MiniLM distilled from the fine-tuned v2-m3, a twenty-fifth of its size, matches the base-sized rerankers on dev (0.40 against 0.41 and 0.42, within one standard error) and does best on test, at under a second, so it is the one served. Rewriting plain-language questions into legal terms before search, and scoring 5 statutes instead of 20 for the scope check, both made things worse and are off.
 
 **More:** [benchmark, full ablation and component checks](docs/evaluation.md)
 

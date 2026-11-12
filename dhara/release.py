@@ -157,11 +157,11 @@ by hash, so no split shares one. Baselines on the test split, right judgment in 
 
 | Retrieval | Recall@10 |
 |---|---|
-| BM25, question as typed | 0.27 |
+| BM25, question as typed | 0.28 |
 | Dense only (bge-m3) | 0.31 |
-| BM25 + citation graph over the mapping | 0.37 |
-| BM25 + citation graph (x2) + bge-m3 dense and sparse, rank fusion | 0.38 |
-| + top 50 reranked by a [fine-tuned cross-encoder](https://huggingface.co/AravArun/dhara-reranker) | 0.43 |
+| BM25 + citation graph over the mapping | 0.40 |
+| BM25 + citation graph + bge-m3 dense and sparse, rank fusion | 0.36 |
+| + top 50 reranked by a [distilled MiniLM cross-encoder](https://huggingface.co/AravArun/dhara-reranker) | 0.45 |
 
 ## Columns
 
