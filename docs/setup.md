@@ -30,7 +30,6 @@ cp .env.example .env        # then add your keys
 | `make bench` | build DharaBench |
 | `make train` | fine-tune the reranker |
 | `make eval` | the ablation on dev, the scope threshold, then the test split |
-| `make export` | the public dataset files in `data/release/` |
 
 ## Run
 

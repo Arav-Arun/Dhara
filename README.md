@@ -80,7 +80,7 @@ DharaBench, built from the corpus, has 1,148 questions with known answers in hel
     <td width="50%"><img src="docs/screenshots/judgments.webp" width="100%" /><br>Judgments: search by section, name, citation or topic, with filters</td>
   </tr>
   <tr>
-    <td width="50%"><img src="docs/screenshots/section.webp" width="100%" /><br>Section page: the new text against the old, with the changes marked</td>
+    <td width="50%"><img src="docs/screenshots/section.webp" width="100%" /><br>Section page: the text, its counterpart in the other code and the judgments on it</td>
     <td width="50%"><img src="docs/screenshots/method.webp" width="100%" /><br>Method: how a question is answered, step by step, with the measured results</td>
   </tr>
 </table>

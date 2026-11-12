@@ -112,5 +112,5 @@ erDiagram
 | `rerank.py`, `train_reranker.py` | cross-encoder and LLM rerankers; fine-tuning on mined pairs, and distillation |
 | `generate.py`, `verify.py`, `agent.py` | context budget, structured answers, the verifier, the research pipeline |
 | `library.py` | judgment search, briefs and questions about a judgment |
-| `bench.py`, `evaluate.py`, `release.py` | DharaBench, the ablation runner, the dataset export |
+| `bench.py`, `evaluate.py` | DharaBench and the ablation runner |
 | `api.py`, `cli.py`, `config.py`, `db.py`, `llm.py`, `models.py` | the API, the command line, settings, storage, the one place that calls the model |
