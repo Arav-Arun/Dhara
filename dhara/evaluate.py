@@ -18,6 +18,7 @@ from dhara.config import ROOT
 from dhara.retrieve import LIVE_WEIGHTS, Hit, Index, Query, strip_refs
 
 RESULTS = ROOT / "eval" / "results"
+LIVE_ROW = "+ MiniLM order fused with the retrieval order (live)"
 Ranker = Callable[[Index, Query], list[Hit]]
 
 
@@ -142,6 +143,8 @@ def configs(models: dict[str, str] | None = None) -> dict[str, Ranker]:
     ):
         if key in models:
             rows[f"+ {label}"] = reranked(fused, models[key])
+    if "mini" in models:  # as served: the MiniLM's order fused by rank with the retrievers' order
+        rows[LIVE_ROW] = then(fused, lambda ix, q, h: rerank.blended(ix, q, h, models["mini"]))
     if "base" in models:
         # dense and sparse dilute the citation graph when every list counts the same; weight 2 was
         # fixed before measuring, so it is not tuned on dev or test
@@ -165,6 +168,40 @@ def ablate(split: str = "dev", only: list[str] | None = None, models: dict[str, 
         rerank.clear_cache()  # each row pays for its own reranker scores, so its latency is real
         save(split, {name: run(ix, ranker, split, workers=8 if "LLM" in name else 1)})
     return (RESULTS / f"{split}.md").read_text()
+
+
+EVERYDAY = (
+    "keyword search, query as typed",
+    "dense only, query as typed (plain RAG, as in prior IPC/BNS repos)",
+    "+ citation graph",
+    "+ bge-m3 dense and sparse, fused by RRF",
+    "+ MiniLM distilled from the fine-tuned v2-m3",
+    LIVE_ROW,
+)
+
+
+def everyday(models: dict[str, str] | None = None) -> str:
+    """Questions typed the way people ask them (eval/dharabench/everyday.jsonl), mostly without a
+    section number, each answered by a landmark judgment that no training question was written from."""
+    from dhara import rerank
+
+    ix = Index()
+    rows = configs(models)
+    out = {}
+    for name in EVERYDAY:
+        if name in rows:
+            rerank.clear_cache()  # each row pays for its own reranker scores
+            r = run(ix, rows[name], "everyday", types=("precedent",))
+            out[name] = r["precedent"] | {"latency_p50_s": round(r["latency_p50_s"], 3)}
+    RESULTS.mkdir(parents=True, exist_ok=True)
+    (RESULTS / "everyday.json").write_text(json.dumps(out, indent=2))
+    lines = ["| Config | R@10 | R@50 | MRR | p50 s |", "|---|---|---|---|---|"]
+    lines += [
+        f"| {n} | {r['recall@10']} | {r['recall@50']} | {r['mrr']} | {r['latency_p50_s']} |" for n, r in out.items()
+    ]
+    table = "\n".join(lines) + "\n"
+    (RESULTS / "everyday.md").write_text(table)
+    return table
 
 
 def calibrate_abstention(

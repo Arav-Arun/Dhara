@@ -203,6 +203,16 @@ def evaluate(split: str = "dev", only: str = "") -> None:
 
 
 @app.command()
+def everyday() -> None:
+    """Score the plain-language questions answered by landmark judgments."""
+    from dhara.evaluate import everyday as run
+    from dhara.train_reranker import MODELS
+
+    models = {k: str(p) for k, p in MODELS.items() if (p / "config.json").exists()}
+    typer.echo(run(models))
+
+
+@app.command()
 def calibrate(split: str = "dev", top: int = 20) -> None:
     """Fit the abstention threshold with the fine-tuned reranker; the API reads it at start-up."""
     import json

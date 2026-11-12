@@ -35,10 +35,11 @@ bench:            ## DharaBench dev/test queries (resumable, ~$0.15 of API calls
 train:            ## fine-tune the cross-encoder reranker
 	uv run dhara train
 
-eval:             ## ablation on the dev split, the abstention threshold, then the test split
+eval:             ## dev ablation, the abstention threshold, the test split, then the everyday questions
 	uv run dhara evaluate --split dev
 	uv run dhara calibrate
 	uv run dhara evaluate --split test
+	uv run dhara everyday
 
 api:              ## local API on :8787
 	uv run uvicorn dhara.api:app --port 8787

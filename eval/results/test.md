@@ -11,4 +11,4 @@
 | + MiniLM distilled from the fine-tuned v2-m3 | 0.447 | 0.211 | 0.456 | 0.833 | 0.864 | 1.0 | 0.585 |
 | + fusion with the citation graph weighted x2 | 0.378 | 0.191 | 0.402 | 0.833 | 0.83 | 0.959 | 0.34 |
 | + fine-tuned bge-reranker-base over the weighted fusion | 0.38 | 0.16 | 0.418 | 1.0 | 0.808 | 1.0 | 1.754 |
-| + questions without a section number put into legal terms first | 0.411 | 0.192 | 0.364 | 0.833 | 0.814 | 1.0 | 1.763 |
+| + MiniLM order fused with the retrieval order (live) | 0.444 | 0.249 | 0.469 | 1.0 | 0.902 | 1.0 | 0.794 |

@@ -2,10 +2,12 @@
 
 - cross_encoder: a cross-encoder reads query and passage together; off-the-shelf or our
   fine-tuned or distilled model (train_reranker.py)
+- blended: the cross-encoder's order fused by rank with the retrievers' order, as served
 - llm: gpt-6-luna orders the top-N in one call, the baseline the small model has to beat on
   quality per rupee and per millisecond
 """
 
+from dataclasses import replace
 from typing import Any
 
 import numpy as np
@@ -66,6 +68,18 @@ def cross_encoder(ix: Index, q: Query, hits: list[Hit], model_name: str, top: in
             out = _cross[model_name].predict([(q.text, t) for t in cand], batch_size=16, show_progress_bar=False)
         _scored.update(zip([k for k, _ in todo], np.asarray(out, dtype=float).tolist(), strict=True))
     return _reorder(hits, len(keys), [_scored[k] for k in keys])
+
+
+def blended(ix: Index, q: Query, hits: list[Hit], model_name: str, top: int = 50, k: int = 60) -> list[Hit]:
+    """Reciprocal rank fusion of the retrievers' order and the cross-encoder's, over the top `top`.
+    A passage that keyword, citation, dense and sparse search all rank highly keeps that weight
+    even when the cross-encoder prefers a later judgment that quotes it. k=60 is the usual RRF
+    constant, the same one the first stage uses."""
+    before = {h.ord: i for i, h in enumerate(hits[:top])}
+    read = cross_encoder(ix, q, [replace(h) for h in hits], model_name, top)
+    score = {h.ord: 1 / (k + before[h.ord] + 1) + 1 / (k + i + 1) for i, h in enumerate(read[:top])}
+    head = sorted((replace(h, score=score[h.ord]) for h in read[:top]), key=lambda h: -h.score)
+    return head + read[top:]
 
 
 LLM_SYS = (

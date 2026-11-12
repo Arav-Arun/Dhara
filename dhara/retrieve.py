@@ -4,8 +4,8 @@ What makes it legal-specific:
 - cross-code citation graph: provisions named in the query ("BNS 103") are mapped to their
   old/new counterparts (IPC 302), and one retriever searches only the judgment chunks that
   actually cite those provisions. A BNS question reaches judgments that only ever cite the IPC.
-  (Appending counterpart names to the query text instead was measured and hurt BM25: generic
-  words like "Indian Penal Code" drown the legal issue.)
+  (The counterparts are not appended to the query text: generic words like "Indian Penal
+  Code" would drown the legal issue in BM25.)
 - separate pools: statutes and judgments are ranked separately so one can't crowd out the other
 
 Filters (applied before ranking): unit kind, a date (`as_of`: provisions in force then,

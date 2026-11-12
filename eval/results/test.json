@@ -340,35 +340,35 @@
     },
     "latency_p50_s": 1.7544664809993264
   },
-  "+ questions without a section number put into legal terms first": {
+  "+ MiniLM order fused with the retrieval order (live)": {
     "precedent": {
-      "recall@10": 0.411,
-      "recall@50": 0.638,
-      "mrr": 0.192,
-      "ndcg@10": 0.234,
+      "recall@10": 0.444,
+      "recall@50": 0.636,
+      "mrr": 0.249,
+      "ndcg@10": 0.288,
       "n": 450
     },
     "precedent_reverse": {
-      "recall@10": 0.833,
+      "recall@10": 1.0,
       "recall@50": 1.0,
-      "mrr": 0.531,
-      "ndcg@10": 0.603,
+      "mrr": 0.378,
+      "ndcg@10": 0.525,
       "n": 6
     },
     "statute": {
       "recall@10": 1.0,
       "recall@50": 1.0,
-      "mrr": 0.942,
-      "ndcg@10": 0.814,
+      "mrr": 0.92,
+      "ndcg@10": 0.902,
       "n": 97
     },
     "precedent_plain": {
-      "recall@10": 0.364,
-      "recall@50": 0.598,
-      "mrr": 0.166,
-      "ndcg@10": 0.203,
+      "recall@10": 0.469,
+      "recall@50": 0.638,
+      "mrr": 0.265,
+      "ndcg@10": 0.307,
       "n": 450
     },
-    "latency_p50_s": 1.7626825099996495
+    "latency_p50_s": 0.7943502080161124
   }
 }

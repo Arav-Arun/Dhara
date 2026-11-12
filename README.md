@@ -26,7 +26,7 @@ flowchart LR
     Q[question] --> E[section numbers read<br>in both codes]
     E --> R[BM25 ∥ citation graph ∥<br>bge-m3 dense ∥ sparse]
     R --> F[fused by rank]
-    F --> X[distilled MiniLM<br>reranks judgments]
+    F --> X[distilled MiniLM reranks,<br>fused with that order]
     X --> C{in scope?<br>same model}
     C -->|yes| G[structured answer,<br>every point cited]
     C -->|no| D[decline]
@@ -36,7 +36,7 @@ flowchart LR
 
 1. **A citation graph across both numberings.** Section numbers in a question are mapped to their counterparts through NCRB's official correspondence tables, and one retriever searches only the judgment passages that cite either. A question about BNS 103 reaches the judgments on IPC 302.
 2. **Hybrid retrieval, fused by rank.** That retriever runs alongside BM25 (with section numbers set aside, since judgments mostly use the old ones) and bge-m3 dense and sparse search, merged by reciprocal rank fusion.
-3. **A small distilled reranker that also gates scope.** A MiniLM cross-encoder (22.7M parameters), distilled from a bge-reranker-v2-m3 fine-tuned on the corpus, reorders the top 50 judgment passages on a CPU-only server. Its score over the retrieved statutes decides whether a question is about criminal law at all; if not, Dhara declines.
+3. **A small distilled reranker that also gates scope.** A MiniLM cross-encoder (22.7M parameters), distilled from a bge-reranker-v2-m3 fine-tuned on the corpus, rereads the top 50 judgment passages on a CPU-only server, and its order is fused by rank with the retrievers' order, so a judgment every retriever agrees on keeps that weight. Its score over the retrieved statutes decides whether a question is about criminal law at all; if not, Dhara declines.
 4. **Answers that can't cite what they weren't given.** The model writes a structured answer from the retrieved passages only, and may run at most two more searches, each shown in the trace. Code, not a model, then drops any statement that cites a passage it wasn't given, names a section that doesn't exist, or presents a repealed section as current law. Checked parts stream to the page as they are written.
 
 **More:** [architecture and design choices](docs/architecture.md)
@@ -52,12 +52,19 @@ DharaBench, built from the corpus, has 1,148 questions with known answers in hel
 | Keyword search + citation graph | 0.40 |
 | LLM reranker over the four retrievers | 0.40 |
 | Fine-tuned bge-reranker-base over the four retrievers | 0.42 |
-| **Live: four retrievers + distilled MiniLM reranker** | **0.45** |
+| **Live: four retrievers + distilled MiniLM, orders fused** | **0.44** |
+
+A second set has 40 questions typed the way people ask them, mostly without a section number ("police station refusing to write my FIR, they say they will do an enquiry first"), each answered by a landmark judgment such as Lalita Kumari or Arnesh Kumar that no training question was written from:
+
+| Setup | Landmark judgment in top 10 |
+|---|---|
+| Plain RAG (dense search only) | 0.68 (27 of 40) |
+| Keyword search, question as typed | 0.80 (32 of 40) |
+| **Live** | **0.83 (33 of 40)** |
 
 - **The citation graph is the main gain:** 0.28 to 0.40 before any model reranks.
-- **A larger benchmark overturned an earlier result.** On 150 questions per split, fine-tuning the reranker looked like a clear win. Tripled to 450, fine-tuned rerankers no longer beat off-the-shelf ones, and the earlier gain turned out to be within the noise of the smaller set.
-- **Distillation kept the accuracy at a fraction of the cost.** The MiniLM ties the base-sized rerankers on dev and does best on test, at a fifth of their compute and a twenty-fifth the size of the model it learned from. Full research answers take about 20 to 30 seconds on the live site, down from about 55.
-- **Two ideas were measured and dropped:** rewriting plain questions into legal terms before search, and a cheaper scope check over 5 statutes instead of 20. Both made results worse.
+- **The reranker's order is fused with the retrievers', not swapped for it.** Later judgments quote landmarks at length, and a cross-encoder reading one passage at a time tends to prefer the quote. Fusing its order with the retrieval order keeps a judgment that all four retrievers agree on: 33 of 40 landmarks in the top 10 against 26 on the reranker's order alone, and 0.43 against 0.40 on DharaBench dev. On short everyday questions the four retrievers alone already find 35 of 40; the reranker earns its place on the longer, more specific DharaBench questions, 0.36 to 0.44 on test.
+- **A 22.7M-parameter reranker on a CPU.** The MiniLM is distilled from a bge-reranker-v2-m3 fine-tuned on the corpus, a model 25 times its size, and matches the base-sized rerankers at a fifth of their compute. Full research answers take about 20 to 30 seconds on the live site.
 
 **More:** [benchmark, full ablation and component checks](docs/evaluation.md)
 

@@ -1,6 +1,7 @@
 """The research pipeline, end to end, with a bounded agentic step and a full trace.
 
-    route → expand + retrieve (statutes ∥ judgments, fused by rank) → rerank judgments → scope check
+    route → expand + retrieve (statutes ∥ judgments, fused by rank) → rerank judgments, fused with
+          the retrieval order → scope check
           → [≤2 follow-up searches] → context budget → structured answer → deterministic verification
 
 The only "agentic" part is one decision: after the first pass, the model may ask for up to two
@@ -109,9 +110,9 @@ class Pipeline:
         )
         if reranked and self.reranker:
             t = time.perf_counter()
-            hits = rerank.cross_encoder(self.ix, q, hits, self.reranker, top=top)
+            hits = rerank.blended(self.ix, q, hits, self.reranker, top=top)
             trace.add(
-                f"rerank:{kind}", t, top=[{"unit": self.ix.ids[h.ord], "score": round(h.score, 3)} for h in hits[:10]]
+                f"rerank:{kind}", t, top=[{"unit": self.ix.ids[h.ord], "score": round(h.score, 4)} for h in hits[:10]]
             )
         return hits
 

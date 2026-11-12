@@ -154,37 +154,6 @@
     },
     "latency_p50_s": 0.3021321030000763
   },
-  "+ multi-vector rescoring": {
-    "precedent": {
-      "recall@10": 0.267,
-      "recall@50": 0.607,
-      "mrr": 0.138,
-      "ndcg@10": 0.154,
-      "n": 450
-    },
-    "precedent_reverse": {
-      "recall@10": 0.8,
-      "recall@50": 1.0,
-      "mrr": 0.296,
-      "ndcg@10": 0.416,
-      "n": 5
-    },
-    "statute": {
-      "recall@10": 0.97,
-      "recall@50": 0.98,
-      "mrr": 0.916,
-      "ndcg@10": 0.83,
-      "n": 100
-    },
-    "precedent_plain": {
-      "recall@10": 0.444,
-      "recall@50": 0.64,
-      "mrr": 0.259,
-      "ndcg@10": 0.294,
-      "n": 450
-    },
-    "latency_p50_s": 1.412872944000128
-  },
   "+ cross-encoder (bge-reranker-base)": {
     "precedent": {
       "recall@10": 0.407,
@@ -277,37 +246,6 @@
       "n": 450
     },
     "latency_p50_s": 12.632968125049956
-  },
-  "+ fine-tuned bge-reranker-base, earlier training set (live until now)": {
-    "precedent": {
-      "recall@10": 0.418,
-      "recall@50": 0.607,
-      "mrr": 0.186,
-      "ndcg@10": 0.234,
-      "n": 450
-    },
-    "precedent_reverse": {
-      "recall@10": 0.6,
-      "recall@50": 1.0,
-      "mrr": 0.299,
-      "ndcg@10": 0.346,
-      "n": 5
-    },
-    "statute": {
-      "recall@10": 0.98,
-      "recall@50": 0.98,
-      "mrr": 0.906,
-      "ndcg@10": 0.769,
-      "n": 100
-    },
-    "precedent_plain": {
-      "recall@10": 0.444,
-      "recall@50": 0.64,
-      "mrr": 0.182,
-      "ndcg@10": 0.235,
-      "n": 450
-    },
-    "latency_p50_s": 4.181979166925885
   },
   "+ fine-tuned bge-reranker-base": {
     "precedent": {
@@ -464,35 +402,35 @@
     },
     "latency_p50_s": 1.7206525020001209
   },
-  "+ questions without a section number put into legal terms first": {
+  "+ MiniLM order fused with the retrieval order (live)": {
     "precedent": {
-      "recall@10": 0.378,
-      "recall@50": 0.609,
-      "mrr": 0.165,
-      "ndcg@10": 0.205,
+      "recall@10": 0.429,
+      "recall@50": 0.607,
+      "mrr": 0.236,
+      "ndcg@10": 0.275,
       "n": 450
     },
     "precedent_reverse": {
-      "recall@10": 0.8,
+      "recall@10": 0.6,
       "recall@50": 1.0,
-      "mrr": 0.17,
-      "ndcg@10": 0.307,
+      "mrr": 0.523,
+      "ndcg@10": 0.526,
       "n": 5
     },
     "statute": {
-      "recall@10": 1.0,
-      "recall@50": 1.0,
-      "mrr": 0.912,
-      "ndcg@10": 0.777,
+      "recall@10": 0.96,
+      "recall@50": 0.98,
+      "mrr": 0.918,
+      "ndcg@10": 0.889,
       "n": 100
     },
     "precedent_plain": {
-      "recall@10": 0.382,
-      "recall@50": 0.578,
-      "mrr": 0.174,
-      "ndcg@10": 0.215,
+      "recall@10": 0.469,
+      "recall@50": 0.64,
+      "mrr": 0.279,
+      "ndcg@10": 0.316,
       "n": 450
     },
-    "latency_p50_s": 1.811928939999234
+    "latency_p50_s": 0.8138855829602107
   }
 }
