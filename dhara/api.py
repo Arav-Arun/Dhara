@@ -2,7 +2,6 @@
 
 GET  /v1/search?q=             command-palette typeahead
 GET  /v1/provisions/{act}/{n}  provision page: text, parts, status, classification, counterparts, precedent
-GET  /v1/compare/{act}/{n}     both sides of the mapping, for the section page's word diff
 POST /v1/research              the full pipeline, streamed as server-sent events (trace, then answer)
 GET  /v1/judgments?q=          judgments by section (either numbering), name, citation or topic; filtered, paged
 GET  /v1/judgments/{id}        one judgment, each section reference in it annotated with its counterpart
@@ -226,19 +225,6 @@ def precedent(pids: list[str], n: int = 12) -> list[dict[str, Any]]:
         {"id": r[0], "title": r[1], "decided_on": r[2], "citation": r[3], "mentions": r[4], "via": r[5].split(",")}
         for r in rows
     ]
-
-
-@app.get("/v1/compare/{act}/{number}")
-def compare(act: str, number: str) -> dict[str, Any]:
-    pid = _pid(act, number)
-    sides = [pid] + [x["id"] for x in counterparts(pid) if x["id"]]
-    texts = {
-        r[0]: {"heading": r[1], "text": r[2]}
-        for r in con().execute(
-            f"SELECT id, heading, text FROM provisions WHERE id IN ({','.join('?' * len(sides))})", sides
-        )
-    }
-    return {"id": pid, "counterparts": counterparts(pid), "texts": texts}
 
 
 class Turn(BaseModel):

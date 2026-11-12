@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import FindCard from "@/components/FindCard";
-import Landscape from "@/components/Landscape";
 import { ToolBody, cardClass, type Tool } from "@/components/ToolCard";
 import AskBox from "@/components/AskBox";
 import { BareAct, GazettePage, JudgmentPage, OldVolume, Ornament, Renumbered } from "@/components/Artifacts";
@@ -76,13 +75,6 @@ export default function Home()
                     </p>
                 </div>
 
-                <div className="mx-auto mt-24 max-w-2xl text-center">
-                    <h2 className="text-[34px] tracking-[-0.035em]">What’s out there, and what it misses</h2>
-                    <p className="mt-2 text-graphite">
-                        The free options each cover one piece. None connects the new codes to the judgments written under the old ones.
-                    </p>
-                </div>
-                <div className="mt-10"><Landscape /></div>
             </section>
         </div>
     );

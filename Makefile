@@ -1,4 +1,4 @@
-.PHONY: setup check-env lint test statutes mapping judgments index bench train eval api web export
+.PHONY: setup check-env lint test statutes mapping judgments index bench train eval api web
 
 setup:            ## install Python env and dev tools
 	uv sync
@@ -45,6 +45,3 @@ api:              ## local API on :8787
 
 web:              ## local site on :3000
 	npm --prefix web run dev
-
-export:           ## public dataset files into data/release/
-	uv run dhara export

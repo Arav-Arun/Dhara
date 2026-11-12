@@ -1,15 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { href, label, type Counterpart, type Provision } from "@/lib/api";
+import { href, label, type Provision } from "@/lib/api";
 import { cached } from "@/lib/data";
 import { Ref, Source, Status, relation, titleCase } from "@/components/ui";
-import DiffView from "@/components/DiffView";
 
 const ACTS = ["bns", "bnss", "bsa", "ipc", "crpc", "iea"];
 const OLD = ["IPC", "CRPC", "IEA"];
-
-type Texts = { counterparts: Counterpart[]; texts: Record<string, { heading: string; text: string }> };
 
 export async function generateMetadata(props: PageProps<"/[act]/[number]">)
 {
@@ -35,10 +32,7 @@ async function ProvisionView({ params }: { params: Promise<{ act: string; number
     {
         notFound();
     }
-    const [p, both] = await Promise.all([
-        cached<Provision>(`/v1/provisions/${act}/${number}`),
-        cached<Texts>(`/v1/compare/${act}/${number}`),
-    ]);
+    const p = await cached<Provision>(`/v1/provisions/${act}/${number}`);
     if (!p)
     {
         notFound();
@@ -91,8 +85,6 @@ async function ProvisionView({ params }: { params: Promise<{ act: string; number
                         </table>
                     </section>
                 )}
-
-                {both && <Changes id={p.id} both={both} />}
             </article>
 
             <aside className="space-y-10 text-sm lg:border-l lg:border-rule lg:pl-8">
@@ -109,9 +101,6 @@ async function ProvisionView({ params }: { params: Promise<{ act: string; number
                             </li>
                         ))}
                     </ul>
-                    {p.counterparts.some((c) => c.id) && (
-                        <a href="#changes" className="mt-4 inline-block text-stamp hover:underline">See how the wording changed</a>
-                    )}
                 </section>
 
                 <section>
@@ -142,49 +131,6 @@ async function ProvisionView({ params }: { params: Promise<{ act: string; number
                 )}
             </aside>
         </div>
-    );
-}
-
-// Old text beside new, every changed word marked. A merged section has several old sources, so
-// each pair gets its own fold, the first one open.
-function Changes({ id, both }: { id: string; both: Texts })
-{
-    const isOld = OLD.includes(id.split(":")[0]);
-    const others = both.counterparts.filter((x) => x.id && both.texts[x.id] && both.texts[id]);
-    if (others.length === 0)
-    {
-        return null;
-    }
-    return (
-        <section id="changes" className="mt-14 scroll-mt-24 sm:ml-[192px]">
-            <h2 className="font-serif text-lg font-semibold">How the wording changed</h2>
-            <p className="mt-1 text-sm text-graphite">Old text on the left. On the right, the new text with added words marked and removed words struck through.</p>
-            <div className="mt-4 divide-y divide-rule border-y border-rule">
-                {others.map((o, i) =>
-                {
-                    const oldId = isOld ? id : o.id!;
-                    const newId = isOld ? o.id! : id;
-                    return (
-                        <details key={o.id} open={i === 0} className="group py-4">
-                            <summary className="cursor-pointer list-none text-sm">
-                                <Ref id={oldId} link={oldId !== id} /> to <Ref id={newId} link={newId !== id} />
-                                <span className="text-graphite">
-                                    . {relation(o.relation)}{o.similarity !== null ? `, ${Math.round(o.similarity * 100)}% of the wording kept` : ""}
-                                </span>
-                                <span className="ml-2 text-stamp group-open:hidden">Show</span>
-                            </summary>
-                            <div className="mt-5 grid gap-8 md:grid-cols-2">
-                                <p className="font-serif text-[16px] leading-[1.75] whitespace-pre-wrap text-graphite">{both.texts[oldId].text}</p>
-                                <DiffView before={both.texts[oldId].text} after={both.texts[newId].text} />
-                            </div>
-                            {o.relation !== "equivalent" && (
-                                <p className="mt-4 text-sm text-graphite">Not a one-to-one replacement, so some marked wording comes from the other sections merged here.</p>
-                            )}
-                        </details>
-                    );
-                })}
-            </div>
-        </section>
     );
 }
 

@@ -130,7 +130,6 @@ def configs(models: dict[str, str] | None = None) -> dict[str, Ranker]:
         "keyword search, section numbers set aside": first(("bm25",)),
         "+ citation graph": first(("bm25", "cited")),
         "+ bge-m3 dense and sparse, fused by RRF": fused,
-        "+ multi-vector rescoring": then(fused, rerank.multivector),
         "+ cross-encoder (bge-reranker-base)": reranked(fused, "BAAI/bge-reranker-base"),
         "+ cross-encoder (bge-reranker-v2-m3)": reranked(fused, "BAAI/bge-reranker-v2-m3"),
         "+ LLM reranker (gpt-6-luna)": then(fused, rerank.llm_rerank),

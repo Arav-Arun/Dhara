@@ -109,7 +109,7 @@ erDiagram
 | `mapping_tables.py`, `mapping.py` | NCRB's correspondence tables, compared with public mapping datasets |
 | `judgments.py`, `citations.py` | Supreme Court judgments: select, download, chunk, extract section references |
 | `index.py`, `retrieve.py` | retrieval units, BM25 and bge-m3 vectors; four retrievers and rank fusion |
-| `rerank.py`, `train_reranker.py` | cross-encoder, multi-vector and LLM rerankers; fine-tuning on mined pairs, and distillation |
+| `rerank.py`, `train_reranker.py` | cross-encoder and LLM rerankers; fine-tuning on mined pairs, and distillation |
 | `generate.py`, `verify.py`, `agent.py` | context budget, structured answers, the verifier, the research pipeline |
 | `library.py` | judgment search, briefs and questions about a judgment |
 | `bench.py`, `evaluate.py`, `release.py` | DharaBench, the ablation runner, the dataset export |

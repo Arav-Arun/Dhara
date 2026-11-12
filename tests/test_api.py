@@ -16,14 +16,6 @@ def test_provision_page() -> None:
     assert p["precedent"] and all("IPC:302" in j["via"] or "BNS:103" in j["via"] for j in p["precedent"])
 
 
-def test_compare_both_ways() -> None:
-    old = client.get("/v1/compare/ipc/498A").json()
-    assert sorted(c["id"] for c in old["counterparts"]) == ["BNS:85", "BNS:86"]
-    assert {"IPC:498A", "BNS:85", "BNS:86"} <= set(old["texts"])
-    new = client.get("/v1/compare/bnss/528").json()
-    assert [c["id"] for c in new["counterparts"]] == ["CRPC:482"]
-
-
 def test_judgment_lists_citations_under_both_codes() -> None:
     j = client.get("/v1/judgments/2013INSC164").json()
     assert j["passages"] and j["passages"][0]["role"] == "headnote"

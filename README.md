@@ -63,7 +63,7 @@ DharaBench, built from the corpus, has 1,148 questions with known answers in hel
 
 - **Research.** Ask in your own words or by section. The answer reads like a research note: the law, what the courts have held, and the cases to cite, each with the proposition it supports, its year and report citation. Follow-up questions keep the context.
 - **Judgments.** Search by section (old or new number), case name, citation or topic. Each judgment opens with a cited brief, answers questions from its own text, and marks every old section in it with today's number.
-- **Section pages.** Any section, old or new, through ⌘K: its text, its counterpart in the other code with the changed words marked, and the judgments on it.
+- **Section pages.** Any section, old or new, through ⌘K: its text, its counterpart in the other code, and the judgments on it.
 
 > [!NOTE]
 > Dhara is a research aid, not legal advice. It covers the six criminal codes and the Supreme Court's criminal judgments, May 1950 to 7 September 2026.

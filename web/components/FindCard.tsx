@@ -9,7 +9,7 @@ const FIND: Tool =
         cover: "find",
         card: "bg-[#c6e3df]",
         stat: "2,353 sections, 1,310 official links",
-        points: ["Type 302, BNS 103 or murder", "Its counterpart in the other code", "Every changed word marked", "The Supreme Court judgments on it"],
+        points: ["Type 302, BNS 103 or murder", "Its counterpart in the other code", "New wording highlighted", "The Supreme Court judgments on it"],
         // phones have no shortcut to press
         cta: <><span className="md:hidden">Tap to search</span><span className="hidden md:inline">Press <kbd className="rounded border border-ink/20 px-1.5 font-[system-ui] text-[12px]">⌘ K</kbd> or click</span></>,
     };

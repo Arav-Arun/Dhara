@@ -153,15 +153,6 @@ def eval_citations() -> None:
 
 
 @app.command()
-def export() -> None:
-    """Write the public dataset to data/release/ (reviewed by hand before any upload)."""
-    from dhara.release import export as run
-
-    for k, v in run().items():
-        typer.echo(f"{k:<16} {v}")
-
-
-@app.command()
 def index() -> None:
     """Build retrieval units, the BM25 index and bge-m3 vectors (resumable; hours on a laptop)."""
     from dhara import index as ix

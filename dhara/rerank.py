@@ -1,7 +1,5 @@
 """Second-stage rerankers, each one an ablation row.
 
-- multivector: bge-m3's ColBERT-style token vectors, computed on the fly for the fused top-N
-  (late interaction: every query token finds its best-matching passage token)
 - cross_encoder: a cross-encoder reads query and passage together; off-the-shelf or our
   fine-tuned or distilled model (train_reranker.py)
 - llm: gpt-6-luna orders the top-N in one call, the baseline the small model has to beat on
@@ -37,18 +35,6 @@ def _reorder(hits: list[Hit], top: int, scores: list[float]) -> list[Hit]:
     for h, s in zip(head, sorted(scores, reverse=True), strict=True):
         h.score = float(s)
     return head + hits[top:]
-
-
-def multivector(ix: Index, q: Query, hits: list[Hit], top: int = 30) -> list[Hit]:
-    model = ix.encoder()
-    cand = texts(ix, hits[:top])
-    with MODEL_LOCK:
-        qv = model.encode([q.expanded or q.text], return_dense=False, return_sparse=False, return_colbert_vecs=True)
-        pv = model.encode(
-            cand, batch_size=16, max_length=512, return_dense=False, return_sparse=False, return_colbert_vecs=True
-        )
-    scores = [float(model.colbert_score(qv["colbert_vecs"][0], p)) for p in pv["colbert_vecs"]]
-    return _reorder(hits, len(cand), scores)
 
 
 def clear_cache() -> None:
