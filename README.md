@@ -11,6 +11,8 @@ It finds Supreme Court precedent under the old and the new section numbers at on
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Model on Hugging Face](https://img.shields.io/badge/model-dhara--reranker-yellow?logo=huggingface)](https://huggingface.co/AravArun/dhara-reranker)
 [![Dataset on Hugging Face](https://img.shields.io/badge/dataset-IPC%20to%20BNS-yellow?logo=huggingface)](https://huggingface.co/datasets/AravArun/dhara-indian-criminal-law)
+
+<img src="docs/screenshots/demo.gif" width="100%" alt="A question about BNS 316 typed into Dhara, answered with cited judgments while the trace fills in" />
 </div>
 
 ## The problem
