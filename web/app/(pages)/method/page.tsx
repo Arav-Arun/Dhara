@@ -100,7 +100,7 @@ export default async function Method()
                         <FanIn />
                     </Step>
                     <Step n={4} title="Merge and re-rank"
-                        text="The four lists are merged by rank. A small cross-encoder then re-reads the top 50 judgment passages next to your question and puts them in order. It is a MiniLM distilled from bge-reranker-v2-m3 fine-tuned on Indian criminal judgments: a twenty-fifth of the size, so it reranks in under a second without a GPU. On held-out questions it puts the right judgment in the top 10 for 45%, against 36% for the merged lists it starts from. The same model checks that the question is about criminal law at all. The best 8 sections and 12 judgments go forward.">
+                        text="The four lists are merged by rank. A small cross-encoder then re-reads the top 50 judgment passages next to your question and puts them in order. It is a MiniLM distilled from bge-reranker-v2-m3 fine-tuned on Indian criminal judgments: a twenty-fifth of the size, so it reranks in about three seconds on a server without a GPU. On held-out questions it puts the right judgment in the top 10 for 45%, against 36% for the merged lists it starts from. The same model checks that the question is about criminal law at all. The best 8 sections and 12 judgments go forward.">
                         <Tags items={["Reciprocal rank fusion", "Distilled cross-encoder", "Out-of-scope check"]} />
                     </Step>
                     <Step n={5} title="A second look"
