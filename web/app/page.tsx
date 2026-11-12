@@ -5,31 +5,20 @@ import Landscape from "@/components/Landscape";
 import { ToolBody, cardClass, type Tool } from "@/components/ToolCard";
 import AskBox from "@/components/AskBox";
 import { BareAct, GazettePage, JudgmentPage, OldVolume, Ornament, Renumbered } from "@/components/Artifacts";
-import { optional } from "@/lib/data";
 
-const COVERAGE: [string, string, string][] =
-    [
-        ["The six criminal codes", "BNS, BNSS and BSA, and the IPC, CrPC and Evidence Act they replaced: 2,353 sections, with the BNSS First Schedule.", "NCRB Sankalan and India Code"],
-        ["The official old-to-new tables", "1,310 links between the old and new sections, down to the subsection, each marked renumbered, merged, split or new.", "NCRB correspondence tables"],
-        ["Supreme Court judgments", "9,686 criminal judgments of the Supreme Court of India, May 1950 to September 2026, with every section they cite.", "Supreme Court reports, via AWS Open Data"],
-    ];
-
-type Meta = { provisions: Record<string, number>; mapping_pairs: number; judgments: number };
 type Page = Tool & { to: string };
 
 const TOOLS: Page[] = [
     { to: "/research", name: "Research", cover: "research", card: "bg-[#e6def8]", stat: "9,686 Supreme Court judgments", cta: "Open",
         points: ["Ask about any offence, procedure or rule of evidence", "Finds precedent under old and new section numbers", "Every statement cites its source", "Follow-up questions keep the context"] },
-    { to: "/judgments", name: "Judgments in today’s numbers", cover: "judgments", card: "bg-[#f6e7b0]", stat: "159,686 section references linked", cta: "Open",
+    { to: "/judgments", name: "Judgments in today’s numbers", cover: "judgments", card: "bg-[#f6e7b0]", stat: "1,59,686 section references linked", cta: "Open",
         points: ["Search by section, case name or citation", "A BNS search finds the IPC-era judgments", "Every old section in the text shows its new number"] },
     { to: "/check", name: "Check a draft", cover: "check", card: "bg-[#f3d3cc]", stat: "Every citation checked", cta: "Open",
         points: ["Paste a draft, FIR or chargesheet", "Catches repealed and wrong-code sections", "Suggests the right section for the offence date"] },
 ];
 
-export default async function Home()
+export default function Home()
 {
-    const meta = await optional<Meta>("/v1/meta");
-    const sections = meta ? Object.values(meta.provisions).reduce((a, b) => a + b, 0) : null;
     return (
         <div>
             <section className="wash relative overflow-hidden">
@@ -73,36 +62,20 @@ export default async function Home()
             </section>
 
             <section className="mx-auto max-w-6xl px-5 py-24">
-                <div className="grid gap-10 rounded-[20px] bg-sheet p-8 sm:p-12 lg:grid-cols-[1.3fr_1fr]">
-                    <div>
-                        <h2 className="text-[32px] leading-tight tracking-[-0.035em]">Why ordinary search falls short now</h2>
-                        <p className="mt-5 font-serif text-[18px] leading-[1.7] text-ink/85">
-                            In Supreme Court criminal judgments decided after July 2024, old-code citations still outnumber
-                            new-code ones by about nineteen to one. A search that reads only “BNS 103” misses more than three
-                            thousand judgments on IPC 302. Dhara searches both numberings at once, so the precedent is there
-                            whichever code your question uses.
-                        </p>
-                    </div>
-                    <dl className="grid grid-cols-2 gap-6 self-end">
-                        <div><dt className="text-sm text-graphite">BNS sections cited by their new number</dt><dd className="figures mt-1 text-[40px] tracking-[-0.03em]">58</dd></div>
-                        <div><dt className="text-sm text-graphite">Reachable through the old code</dt><dd className="figures mt-1 text-[40px] tracking-[-0.03em] text-stamp">321</dd></div>
-                        {meta && <div><dt className="text-sm text-graphite">Sections across six codes</dt><dd className="figures mt-1 text-[28px]">{sections?.toLocaleString("en-IN")}</dd></div>}
-                        {meta && <div><dt className="text-sm text-graphite">Supreme Court judgments</dt><dd className="figures mt-1 text-[28px]">{meta.judgments.toLocaleString("en-IN")}</dd></div>}
-                    </dl>
-                </div>
-
-                <div className="mx-auto mt-24 max-w-2xl text-center">
-                    <h2 className="text-[34px] tracking-[-0.035em]">What Dhara answers from</h2>
-                    <p className="mt-2 text-graphite">Every answer comes from these sources and cites them, so civil, tax and family law are out of scope. Questions clearly outside criminal law are declined rather than guessed.</p>
-                </div>
-                <div className="mx-auto mt-10 grid max-w-5xl gap-4 md:grid-cols-3">
-                    {COVERAGE.map(([title, what, source]) => (
-                        <div key={title} className="rounded-[18px] bg-sheet p-6 ring-1 ring-rule">
-                            <h3 className="text-[17px] tracking-[-0.01em]">{title}</h3>
-                            <p className="mt-2 text-[14px] leading-relaxed text-graphite">{what}</p>
-                            <p className="mt-4 text-[13px] text-stamp">{source}</p>
-                        </div>
-                    ))}
+                <div className="mx-auto max-w-3xl rounded-[20px] bg-sheet p-8 sm:p-12">
+                    <h2 className="text-[32px] leading-tight tracking-[-0.035em]">Why ordinary search falls short now</h2>
+                    <p className="mt-5 font-serif text-[18px] leading-[1.7] text-ink/85">
+                        In Supreme Court criminal judgments decided after July 2024, old-code citations still outnumber
+                        new-code ones by about nineteen to one: only 58 BNS sections have been cited by their new number,
+                        while 321 can be reached through the sections they replaced. A search that reads only “BNS 103”
+                        misses more than three thousand judgments on IPC 302. Dhara searches both numberings at once, so
+                        the precedent is there whichever code your question uses.
+                    </p>
+                    <p className="mt-6 border-t border-rule pt-5 text-[15px] leading-relaxed text-graphite">
+                        Answers come only from the six criminal codes, the official old-to-new tables and Supreme Court
+                        criminal judgments, so civil, tax and family law are out of scope and questions outside criminal
+                        law are declined rather than guessed. <Link href="/method" className="text-stamp hover:underline">What Dhara reads and how answers are checked</Link>
+                    </p>
                 </div>
 
                 <div className="mx-auto mt-24 max-w-2xl text-center">
